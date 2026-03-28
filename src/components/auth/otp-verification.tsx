@@ -20,7 +20,15 @@ const formSchema = z.object({
 
 type FormType = z.infer<typeof formSchema>;
 
-export const OtpVerification = ({ verifyEmail }: { verifyEmail: string }) => {
+type OtpVerificationProps = {
+  verifyEmail: string;
+  callbackUrl?: string;
+};
+
+export const OtpVerification = ({
+  verifyEmail,
+  callbackUrl = "/workspace",
+}: OtpVerificationProps) => {
   const router = useRouter();
   const [timeToResend, setTimeToResend] = useState(30);
   const form = useForm<FormType>({
@@ -66,7 +74,7 @@ export const OtpVerification = ({ verifyEmail }: { verifyEmail: string }) => {
       {
         onSuccess: () => {
           toast.success("Email verified successfully!");
-          router.push("/workspace");
+          router.push(callbackUrl);
         },
         onError: (error) => {
           toast.error(

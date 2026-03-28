@@ -1,11 +1,21 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "@/db/db";
-import { emailOTP } from "better-auth/plugins";
+import { emailOTP, organization } from "better-auth/plugins";
 import { sendVerificationOtp } from "../emails/verification-email";
 import { envServer } from "@/data/env/server";
 
 export const auth = betterAuth({
+  user: {
+    additionalFields: {
+      onboardingPhase: {
+        type: "string",
+        required: true,
+        input: false,
+        defaultValue: "create-organization",
+      },
+    },
+  },
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
@@ -31,6 +41,7 @@ export const auth = betterAuth({
         await sendVerificationOtp(data);
       },
     }),
+    organization(),
   ],
   database: drizzleAdapter(db, {
     provider: "pg",
@@ -42,3 +53,6 @@ export const auth = betterAuth({
     },
   },
 });
+
+export type User = typeof auth.$Infer.Session.user;
+export type Session = typeof auth.$Infer.Session.session;

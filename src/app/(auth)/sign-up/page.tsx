@@ -69,7 +69,7 @@ const SignInPage = () => {
     await authClient.signUp.email(
       {
         ...data,
-        callbackURL: "/workspace",
+        callbackURL: "/onboarding",
       },
       {
         onSuccess: () => {
@@ -90,7 +90,7 @@ const SignInPage = () => {
     setSocialSignInLoading(true);
     await authClient.signIn.social({
       provider,
-      callbackURL: "/workspace",
+      callbackURL: "/onboarding",
       fetchOptions: {
         onSuccess: () => {
           toast.success("Account created successfully!");
@@ -108,7 +108,9 @@ const SignInPage = () => {
   };
 
   if (verifyEmail) {
-    return <OtpVerification verifyEmail={verifyEmail} />;
+    return (
+      <OtpVerification verifyEmail={verifyEmail} callbackUrl="/onboarding" />
+    );
   }
 
   const isPending = socialSignInLoading || form.formState.isSubmitting;
