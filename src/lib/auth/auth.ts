@@ -4,6 +4,14 @@ import { db } from "@/db/db";
 import { emailOTP, organization } from "better-auth/plugins";
 import { sendVerificationOtp } from "../emails/verification-email";
 import { envServer } from "@/data/env/server";
+import Stripe from "stripe";
+import { stripe } from "@better-auth/stripe";
+import { and, eq } from "drizzle-orm";
+import { member, member as MemberTable, user } from "@/db/schema";
+
+const stripeClient = new Stripe(envServer.STRIPE_SECRET_KEY, {
+  apiVersion: "2026-02-25.clover",
+});
 
 export const auth = betterAuth({
   user: {
@@ -42,6 +50,70 @@ export const auth = betterAuth({
       },
     }),
     organization(),
+    stripe({
+      stripeClient,
+      stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET!,
+      organization: {
+        enabled: true,
+      },
+      createCustomerOnSignUp: true,
+      subscription: {
+        enabled: true,
+        plans: [
+          {
+            name: "Free",
+            limits: {
+              monthlyAIGeneratedMessage: 50,
+              monthlyAIGeneratedSummaries: 1,
+            },
+          },
+          {
+            name: "pro",
+            priceId: envServer.STRIPE_PRO_PRICE_ID,
+            limits: {
+              monthlyAIGeneratedMessage: 500,
+              monthlyAIGeneratedSummaries: 5,
+            },
+          },
+          {
+            name: "enterprise",
+            priceId: envServer.STRIPE_ENTERPRISE_PRICE_ID,
+            limits: {
+              monthlyAIGeneratedMessage: null,
+              monthlyAIGeneratedSummaries: null,
+            },
+          },
+        ],
+        authorizeReference: async ({ user, referenceId }) => {
+          const [member] = await db
+            .select()
+            .from(MemberTable)
+            .where(
+              and(
+                eq(MemberTable.userId, user.id),
+                eq(MemberTable.organizationId, referenceId),
+              ),
+            );
+          return member?.role === "owner" || member?.role === "admin";
+        },
+        onSubscriptionComplete: async ({ subscription }) => {
+          const [ownerMember] = await db
+            .select()
+            .from(member)
+            .where(
+              and(
+                eq(member.organizationId, subscription.referenceId),
+                eq(member.role, "owner"),
+              ),
+            );
+
+          await db
+            .update(user)
+            .set({ onboardingPhase: "completed" })
+            .where(eq(user.id, ownerMember.userId));
+        },
+      },
+    }),
   ],
   database: drizzleAdapter(db, {
     provider: "pg",
