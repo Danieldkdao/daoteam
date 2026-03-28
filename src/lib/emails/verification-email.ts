@@ -27,43 +27,46 @@ const EMAIL_THEME = {
 const EMAIL_FONT_FAMILY =
   "'Outfit', Inter, 'Segoe UI', Helvetica, Arial, sans-serif";
 
-const emailContentByType: Record<sendVerificationOtpProps["type"], {
-  subject: string;
-  eyebrow: string;
-  heading: string;
-  description: string;
-  instruction: string;
-}> = {
+const emailContentByType: Record<
+  sendVerificationOtpProps["type"],
+  {
+    subject: string;
+    eyebrow: string;
+    heading: string;
+    description: string;
+    instruction: string;
+  }
+> = {
   "sign-in": {
-    subject: "Your Free State Tennis sign-in code",
+    subject: "Your DaoTeam sign-in code",
     eyebrow: "Secure sign-in",
     heading: "Use this code to sign in",
     description:
-      "Enter the verification code below to finish signing in to your Free State Tennis account.",
+      "Enter the verification code below to finish signing in to your DaoTeam account.",
     instruction: "Paste this code into the sign-in screen to continue.",
   },
   "change-email": {
-    subject: "Confirm your new email for Free State Tennis",
+    subject: "Confirm your new email for DaoTeam",
     eyebrow: "Email change",
     heading: "Confirm your new email address",
     description:
-      "Use the verification code below to confirm this email address for your Free State Tennis account.",
+      "Use the verification code below to confirm this email address for your DaoTeam account.",
     instruction: "Enter this code to complete your email change.",
   },
   "email-verification": {
-    subject: "Verify your email for Free State Tennis",
+    subject: "Verify your email for DaoTeam",
     eyebrow: "Email verification",
     heading: "Verify your email address",
     description:
-      "Welcome to Free State Tennis. Enter the verification code below to activate your account.",
+      "Welcome to DaoTeam. Enter the verification code below to activate your account.",
     instruction: "Type this code into the verification form to finish setup.",
   },
   "forget-password": {
-    subject: "Your Free State Tennis password reset code",
+    subject: "Your DaoTeam password reset code",
     eyebrow: "Password reset",
     heading: "Reset your password",
     description:
-      "Use the verification code below to continue resetting your Free State Tennis password.",
+      "Use the verification code below to continue resetting your DaoTeam password.",
     instruction: "Enter this code on the password reset screen to proceed.",
   },
 };
@@ -75,7 +78,7 @@ export const sendVerificationOtp = async ({
 }: sendVerificationOtpProps) => {
   const content = emailContentByType[type];
   const text = [
-    `${content.heading} - Free State Tennis`,
+    `${content.heading} - DaoTeam`,
     "",
     content.description,
     "",
