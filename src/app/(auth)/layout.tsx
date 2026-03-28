@@ -21,6 +21,12 @@ export const AuthLayoutSuspense = async ({
   children: ReactNode;
 }) => {
   const session = await auth.api.getSession({ headers: await headers() });
-  if (session) return redirect("/workspace");
+  if (session) {
+    if (session.user.onboardingPhase === "completed") {
+      return redirect("/workspace");
+    } else {
+      return redirect("/onboarding");
+    }
+  }
   return children;
 };
