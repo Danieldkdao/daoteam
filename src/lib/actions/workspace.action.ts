@@ -5,8 +5,8 @@ import { auth } from "../auth/auth";
 import { UNAUTHED_MESSAGE } from "../constants";
 import { generateSlug } from "../utils";
 import { db } from "@/db/db";
-import { user } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { member, organization, user } from "@/db/schema";
+import { desc, eq, inArray } from "drizzle-orm";
 
 export const createWorkspace = async (
   orgName: string,
@@ -52,4 +52,24 @@ export const createWorkspace = async (
       message: "Something went wrong. Failed to create workspace.",
     };
   }
+};
+
+export const getWorkspaces = async () => {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) return [];
+
+  const teamMembers = await db
+    .select()
+    .from(member)
+    .where(eq(member.userId, session.user.id));
+
+  const workspaceIds = [...new Set(teamMembers.map((tm) => tm.organizationId))];
+
+  const workspaces = await db
+    .select()
+    .from(organization)
+    .where(inArray(organization.id, workspaceIds))
+    .orderBy(desc(organization.createdAt));
+
+  return workspaces;
 };
