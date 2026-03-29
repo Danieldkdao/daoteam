@@ -14,6 +14,7 @@ import { Button } from "../ui/button";
 import { LoadingSwap } from "../ui/loading-swap";
 import { useTRPC } from "@/trpc/client";
 import { useMutation } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 
 const formSchema = z.object({
   name: z
@@ -36,6 +37,7 @@ export const CreateChannelModal = ({
   const router = useRouter();
   const params = useParams<{ workspaceId?: string }>();
   const trpc = useTRPC();
+  const queryClient = useQueryClient();
   const form = useForm<FormType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -47,7 +49,12 @@ export const CreateChannelModal = ({
 
   const createChannel = useMutation(
     trpc.channel.create.mutationOptions({
-      onSuccess: ({ channel, message }) => {
+      onSuccess: async ({ channel, message }) => {
+        await queryClient.invalidateQueries(
+          trpc.channel.getMany.queryOptions({
+            workspaceId: channel.organizationId,
+          }),
+        );
         toast.success(message);
         router.push(
           `/workspace/${channel.organizationId}/channel/${channel.id}`,
@@ -67,8 +74,7 @@ export const CreateChannelModal = ({
   };
 
   const nameValue = form.watch("name");
-  const pending =
-    form.formState.isSubmitting || createChannel.isPending;
+  const pending = form.formState.isSubmitting || createChannel.isPending;
 
   return (
     <ResponsiveDialog
@@ -105,9 +111,7 @@ export const CreateChannelModal = ({
           disabled={pending || !form.formState.isDirty}
           className="w-full"
         >
-          <LoadingSwap isLoading={pending}>
-            Create Channel
-          </LoadingSwap>
+          <LoadingSwap isLoading={pending}>Create Channel</LoadingSwap>
         </Button>
       </form>
     </ResponsiveDialog>
