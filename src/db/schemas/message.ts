@@ -1,14 +1,17 @@
 import { pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { organization, user } from "./user";
+import { ChannelTable } from "./channel";
 import { relations } from "drizzle-orm";
-import { MessageTable } from "./message";
 
-export const ChannelTable = pgTable("channels", {
+export const MessageTable = pgTable("messages", {
   id: uuid().primaryKey().defaultRandom(),
-  name: varchar("name").notNull(),
-  slug: varchar("slug").notNull(),
+  message: varchar("message").notNull(),
+  image: varchar("image"),
   userId: varchar("user_id")
     .references(() => user.id, { onDelete: "cascade" })
+    .notNull(),
+  channelId: uuid("channel_id")
+    .references(() => ChannelTable.id, { onDelete: "cascade" })
     .notNull(),
   organizationId: varchar("organization_id")
     .references(() => organization.id, { onDelete: "cascade" })
@@ -16,16 +19,23 @@ export const ChannelTable = pgTable("channels", {
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
 });
 
-export const channelRelations = relations(ChannelTable, ({ one, many }) => ({
+export const messageRelations = relations(MessageTable, ({ one }) => ({
   user: one(user, {
-    fields: [ChannelTable.userId],
+    fields: [MessageTable.userId],
     references: [user.id],
   }),
+  channel: one(ChannelTable, {
+    fields: [MessageTable.channelId],
+    references: [ChannelTable.id],
+  }),
   organization: one(organization, {
-    fields: [ChannelTable.organizationId],
+    fields: [MessageTable.organizationId],
     references: [organization.id],
   }),
-  messages: many(MessageTable),
 }));

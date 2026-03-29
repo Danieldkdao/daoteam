@@ -10,6 +10,7 @@ import {
   integer,
 } from "drizzle-orm/pg-core";
 import { ChannelTable } from "./channel";
+import { MessageTable } from "./message";
 
 export const onboardingPhases = [
   "create-organization",
@@ -185,6 +186,7 @@ export const userRelations = relations(user, ({ many }) => ({
   members: many(member),
   invitations: many(invitation),
   channels: many(ChannelTable),
+  messages: many(MessageTable),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -205,6 +207,7 @@ export const organizationRelations = relations(organization, ({ many }) => ({
   members: many(member),
   invitations: many(invitation),
   channels: many(ChannelTable),
+  messages: many(MessageTable),
 }));
 
 export const memberRelations = relations(member, ({ one }) => ({
