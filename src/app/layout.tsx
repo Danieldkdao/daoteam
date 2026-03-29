@@ -3,6 +3,7 @@ import { Outfit, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { TRPCReactProvider } from "@/trpc/client";
 
 const outfitSans = Outfit({
   variable: "--font-outfit-sans",
@@ -31,10 +32,12 @@ export default function RootLayout({
       className={`${outfitSans.variable} ${outfitSans.className} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <TooltipProvider>
-          <Toaster />
-          {children}
-        </TooltipProvider>
+        <TRPCReactProvider>
+          <TooltipProvider>
+            <Toaster />
+            {children}
+          </TooltipProvider>
+        </TRPCReactProvider>
       </body>
     </html>
   );
