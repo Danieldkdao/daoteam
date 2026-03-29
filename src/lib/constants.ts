@@ -1,4 +1,5 @@
 export const UNAUTHED_MESSAGE = "Please sign in to continue.";
+export const NO_PERMISSIONS_MESSAGE = "You do not have permission to do this.";
 
 export const COLOR_COMBINATIONS = [
   "bg-blue-500 hover:bg-blue-600 text-white",

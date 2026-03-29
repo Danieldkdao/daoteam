@@ -9,6 +9,7 @@ import {
   pgEnum,
   integer,
 } from "drizzle-orm/pg-core";
+import { ChannelTable } from "./channel";
 
 export const onboardingPhases = [
   "create-organization",
@@ -183,6 +184,7 @@ export const userRelations = relations(user, ({ many }) => ({
   accounts: many(account),
   members: many(member),
   invitations: many(invitation),
+  channels: many(ChannelTable),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -202,6 +204,7 @@ export const accountRelations = relations(account, ({ one }) => ({
 export const organizationRelations = relations(organization, ({ many }) => ({
   members: many(member),
   invitations: many(invitation),
+  channels: many(ChannelTable),
 }));
 
 export const memberRelations = relations(member, ({ one }) => ({

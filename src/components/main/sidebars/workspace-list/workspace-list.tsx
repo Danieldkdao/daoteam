@@ -15,7 +15,7 @@ export const WorkspaceList = async () => {
       {workspaces.map((w) => (
         <Link key={w.id} href={`/workspace/${w.id}`} className="w-full">
           <Tooltip>
-            <TooltipTrigger className="w-full cursor-pointer">
+            <TooltipTrigger className="w-full cursor-pointer" asChild>
               <div
                 className={cn(
                   "rounded-xl w-full h-20 flex items-center justify-center transition-colors duration-150",

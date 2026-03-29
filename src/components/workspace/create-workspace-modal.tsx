@@ -47,6 +47,7 @@ export const CreateWorkspaceModal = ({
       toast.success(response.message);
       router.push(`/workspace/${response.workspace.id}`);
       setOpen(false);
+      form.reset();
     }
   };
 
