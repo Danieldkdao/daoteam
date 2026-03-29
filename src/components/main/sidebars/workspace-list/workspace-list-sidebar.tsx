@@ -1,4 +1,4 @@
-import { PlusIcon } from "lucide-react";
+import { CreateWorkspaceButton } from "./create-workspace-button";
 import { UserProfileSection } from "./user-profile-section";
 import { Suspense } from "react";
 
@@ -14,9 +14,7 @@ export const WorkspaceListSidebar = () => {
             <span className="text-3xl font-bold">G</span>
           </div>
         </div>
-        <div className="rounded-lg w-full h-20 border-2 border-dashed flex items-center justify-center ">
-          <PlusIcon strokeWidth={3} className="size-8 text-muted-foreground" />
-        </div>
+        <CreateWorkspaceButton />
       </div>
       <Suspense>
         {/* todo: add loading skeleton */}
