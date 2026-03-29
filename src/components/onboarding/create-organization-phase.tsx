@@ -1,6 +1,6 @@
 "use client";
 
-import { createOrganization } from "@/lib/actions/organization.action";
+import { createWorkspace } from "@/lib/actions/organization.action";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -12,10 +12,7 @@ import { LoadingSwap } from "../ui/loading-swap";
 import { OnboardingClientPhaseProps } from "@/lib/types";
 
 const formSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, { error: "Please enter an organization name." }),
+  name: z.string().trim().min(1, { error: "Please enter an workspace name." }),
 });
 
 type FormType = z.infer<typeof formSchema>;
@@ -27,12 +24,12 @@ export const CreateOrganizationPhase = ({
   const form = useForm<FormType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: `${user.name}'s Organization`,
+      name: `${user.name}'s Workspace`,
     },
   });
 
   const handleCreateOrganization = async ({ name }: FormType) => {
-    const response = await createOrganization(name);
+    const response = await createWorkspace(name);
     if (response.error) {
       toast.error(response.message);
     } else {
@@ -45,7 +42,7 @@ export const CreateOrganizationPhase = ({
     <div className="w-full max-w-100 space-y-4">
       <div className="w-full rounded-md bg-primary p-4 space-y-2">
         <h1 className="text-3xl font-bold text-background">DaoTeam</h1>
-        <span className="text-background">Create your first organization</span>
+        <span className="text-background">Create your first workspace</span>
       </div>
       <form
         onSubmit={form.handleSubmit(handleCreateOrganization)}
@@ -56,8 +53,8 @@ export const CreateOrganizationPhase = ({
           control={form.control}
           render={({ field, fieldState }) => (
             <Field>
-              <FieldLabel>Organization Name</FieldLabel>
-              <Input {...field} placeholder="My Default Organization" />
+              <FieldLabel>Workspace Name</FieldLabel>
+              <Input {...field} placeholder="My First Workspace..." />
               {fieldState.error && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}
