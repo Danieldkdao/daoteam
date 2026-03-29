@@ -19,9 +19,9 @@ export const ChannelListHeaderView = () => {
   if (isError) return <ChannelListHeaderError />;
 
   return (
-    <div className="px-5 h-22 border-b flex items-center">
+    <div className="px-5 h-16 border-b flex items-center">
       <div className="w-full overflow-x-auto hide-scrollbar">
-        <h1 className="text-3xl font-bold whitespace-nowrap">
+        <h1 className="text-2xl font-bold whitespace-nowrap">
           {workspaceData?.name ?? "Channels"}
         </h1>
       </div>

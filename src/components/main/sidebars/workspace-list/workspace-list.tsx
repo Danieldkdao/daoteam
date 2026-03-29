@@ -54,7 +54,7 @@ const WorkspaceListSuspense = () => {
   );
 
   return (
-    <div className="flex flex-col gap-2 w-full overflow-auto">
+    <div className="flex flex-col gap-3 w-full overflow-auto">
       {workspaces.map((w) => (
         <Link key={w.id} href={`/workspace/${w.id}`} className="w-full">
           <Tooltip>

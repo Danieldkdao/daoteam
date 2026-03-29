@@ -1,5 +1,7 @@
 import { Suspense } from "react";
 import { Skeleton } from "../ui/skeleton";
+import { MessageHeader } from "../messages/message-header";
+import { TextEditor } from "../editor/editor";
 
 type ChannelIdViewProps = {
   params: Promise<{ workspaceId: string; channelId: string }>;
@@ -27,10 +29,7 @@ const ChannelIdLoading = () => {
         </div>
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, index) => (
-            <Skeleton
-              key={index}
-              className="h-20 rounded-2xl"
-            />
+            <Skeleton key={index} className="h-20 rounded-2xl" />
           ))}
         </div>
       </div>
@@ -39,11 +38,15 @@ const ChannelIdLoading = () => {
 };
 
 const ChannelIdSuspense = async ({ params }: ChannelIdViewProps) => {
-  const { workspaceId, channelId } = await params;
+  await params;
 
   return (
-    <div>
-      {workspaceId}, {channelId}
+    <div className="flex flex-col h-full">
+      <MessageHeader channelSlug="answer" />
+      <div className="flex-1 h-full w-full"></div>
+      <div className="p-4 border-t">
+        <TextEditor />
+      </div>
     </div>
   );
 };
