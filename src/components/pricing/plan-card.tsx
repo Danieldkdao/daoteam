@@ -1,13 +1,13 @@
 "use client";
 
-import { CheckIcon } from "lucide-react";
-import { Separator } from "../ui/separator";
-import { Button } from "../ui/button";
-import { Badge } from "../ui/badge";
-import { authClient } from "@/lib/auth/auth-client";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import { continueWithFreePlan } from "@/lib/actions/pricing.action";
+import { authClient } from "@/lib/auth/auth-client";
+import { CheckIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Badge } from "../ui/badge";
+import { Button } from "../ui/button";
+import { Separator } from "../ui/separator";
 
 type PlanCardProps = {
   title: string;
@@ -15,6 +15,7 @@ type PlanCardProps = {
   price: number;
   features: string[];
   isMostPopular: boolean;
+  currentWorkspaceId: string | null;
 };
 
 export const PlanCard = ({
@@ -23,10 +24,11 @@ export const PlanCard = ({
   price,
   features,
   isMostPopular,
+  currentWorkspaceId,
 }: PlanCardProps) => {
   const router = useRouter();
-  const { data: activeSubscription, isPending } =
-    authClient.useActiveOrganization();
+  const { data: activeWorkspace } = authClient.useActiveOrganization();
+
   const handleSelectPlan = async () => {
     if (plan === "free") {
       const response = await continueWithFreePlan();
@@ -37,12 +39,16 @@ export const PlanCard = ({
       }
       return;
     }
+    if (!currentWorkspaceId && !activeWorkspace?.id)
+      return toast.error(
+        "Something went wrong. Please try again or come back later.",
+      );
     await authClient.subscription.upgrade(
       {
         plan,
-        referenceId: activeSubscription?.id,
+        referenceId: currentWorkspaceId ?? activeWorkspace?.id,
         customerType: "organization",
-        successUrl: window.location.href,
+        successUrl: "/onboarding/redirect",
         cancelUrl: window.location.href,
         disableRedirect: false,
       },
@@ -78,9 +84,7 @@ export const PlanCard = ({
             </div>
           ))}
         </div>
-        <Button onClick={handleSelectPlan} disabled={isPending}>
-          Select plan
-        </Button>
+        <Button onClick={handleSelectPlan}>Select plan</Button>
         <span className="text-muted-foreground text-sm font-medium">
           *All limits are shared across the organization.
         </span>

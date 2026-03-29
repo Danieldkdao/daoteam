@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { auth } from "./lib/auth/auth";
+import { db } from "./db/db";
+import { eq } from "drizzle-orm";
+import { user } from "./db/schema";
 
 const authedRoutes = ["/sign-in", "/sign-up"];
 
@@ -8,18 +11,25 @@ export const proxy = async (request: NextRequest) => {
   const url = request.nextUrl.clone();
   const pathname = url.pathname;
   const session = await auth.api.getSession({ headers: request.headers });
-  if (!authedRoutes.includes(pathname) && !session)
+  const existingUser = await db.query.user.findFirst({
+    where: eq(user.id, session?.user.id ?? ""),
+  });
+  if (!authedRoutes.includes(pathname) && !existingUser)
     return NextResponse.redirect(new URL("/sign-in", request.url));
   if (
-    pathname !== "/onboarding" &&
-    session &&
-    session.user.onboardingPhase !== "completed"
-  )
+    !pathname.includes("/onboarding") &&
+    existingUser &&
+    existingUser.onboardingPhase !== "completed"
+  ) {
     return NextResponse.redirect(new URL("/onboarding", request.url));
+  }
+
   if (
-    [...authedRoutes, "/onboarding"].includes(pathname) &&
-    session &&
-    session.user.onboardingPhase === "completed"
+    [...authedRoutes, "/onboarding", "/onboarding/redirect"].includes(
+      pathname,
+    ) &&
+    existingUser &&
+    existingUser.onboardingPhase === "completed"
   )
     return NextResponse.redirect(new URL("/workspace", request.url));
 

@@ -2,6 +2,7 @@
 
 import { PricingPlan } from "@/db/schema";
 import { PlanCard } from "../pricing/plan-card";
+import { OnboardingClientPhaseProps } from "@/lib/types";
 
 const planDetails: {
   title: string;
@@ -48,7 +49,9 @@ const planDetails: {
   },
 ];
 
-export const SelectPlanPhase = () => {
+export const SelectPlanPhase = ({
+  currentWorkspaceId,
+}: OnboardingClientPhaseProps) => {
   return (
     <div className="flex flex-col items-center gap-12">
       <div className="space-y-2">
@@ -62,7 +65,11 @@ export const SelectPlanPhase = () => {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-300">
         {planDetails.map((details) => (
-          <PlanCard key={details.plan} {...details} />
+          <PlanCard
+            key={details.plan}
+            {...details}
+            currentWorkspaceId={currentWorkspaceId}
+          />
         ))}
       </div>
     </div>

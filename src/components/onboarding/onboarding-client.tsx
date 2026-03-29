@@ -21,7 +21,17 @@ export const OnboardingClient = ({ user }: { user: User }) => {
   const [onboardingPhase, setOnboardingPhase] = useState<OnboardingPhase>(
     user.onboardingPhase as OnboardingPhase,
   );
+  const [currentWorkspaceId, setCurrentWorkspaceId] = useState<string | null>(
+    null,
+  );
   const Component = onboardingPhaseComponentMap[onboardingPhase];
 
-  return <Component user={user} setOnboardingPhase={setOnboardingPhase} />;
+  return (
+    <Component
+      user={user}
+      setOnboardingPhase={setOnboardingPhase}
+      currentWorkspaceId={currentWorkspaceId}
+      setCurrentWorkspaceId={setCurrentWorkspaceId}
+    />
+  );
 };

@@ -37,6 +37,7 @@ export const user = pgTable("user", {
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
   stripeCustomerId: text("stripe_customer_id"),
+  plan: pricingPlanEnum("plan").default("free").notNull(),
   onboardingPhase: onboardingPhaseEnum("onboarding_phase")
     .default("create-organization")
     .notNull(),

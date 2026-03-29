@@ -7,7 +7,7 @@ import { envServer } from "@/data/env/server";
 import Stripe from "stripe";
 import { stripe } from "@better-auth/stripe";
 import { and, eq } from "drizzle-orm";
-import { user, member } from "@/db/schema";
+import { member } from "@/db/schema";
 
 const stripeClient = new Stripe(envServer.STRIPE_SECRET_KEY, {
   apiVersion: "2026-02-25.clover",
@@ -16,6 +16,12 @@ const stripeClient = new Stripe(envServer.STRIPE_SECRET_KEY, {
 export const auth = betterAuth({
   user: {
     additionalFields: {
+      plan: {
+        type: "string",
+        required: true,
+        input: false,
+        defaultValue: "free",
+      },
       onboardingPhase: {
         type: "string",
         required: true,
@@ -95,22 +101,6 @@ export const auth = betterAuth({
               ),
             );
           return teamMember?.role === "owner" || teamMember?.role === "admin";
-        },
-        onSubscriptionComplete: async ({ subscription }) => {
-          const [ownerMember] = await db
-            .select()
-            .from(member)
-            .where(
-              and(
-                eq(member.organizationId, subscription.referenceId),
-                eq(member.role, "owner"),
-              ),
-            );
-
-          await db
-            .update(user)
-            .set({ onboardingPhase: "completed" })
-            .where(eq(user.id, ownerMember.userId));
         },
       },
     }),

@@ -1,6 +1,5 @@
 "use client";
 
-import { createWorkspace } from "@/lib/actions/organization.action";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -10,6 +9,7 @@ import { Field, FieldError, FieldLabel } from "../ui/field";
 import { Input } from "../ui/input";
 import { LoadingSwap } from "../ui/loading-swap";
 import { OnboardingClientPhaseProps } from "@/lib/types";
+import { createWorkspace } from "@/lib/actions/workspace.action";
 
 const formSchema = z.object({
   name: z.string().trim().min(1, { error: "Please enter an workspace name." }),
@@ -20,6 +20,7 @@ type FormType = z.infer<typeof formSchema>;
 export const CreateOrganizationPhase = ({
   user,
   setOnboardingPhase,
+  setCurrentWorkspaceId,
 }: OnboardingClientPhaseProps) => {
   const form = useForm<FormType>({
     resolver: zodResolver(formSchema),
@@ -29,11 +30,12 @@ export const CreateOrganizationPhase = ({
   });
 
   const handleCreateOrganization = async ({ name }: FormType) => {
-    const response = await createWorkspace(name);
-    if (response.error) {
+    const response = await createWorkspace(name, true);
+    if (response.error || !response.workspace) {
       toast.error(response.message);
     } else {
       toast.success(response.message);
+      setCurrentWorkspaceId(response.workspace.id);
       setOnboardingPhase("select-plan");
     }
   };
@@ -54,7 +56,7 @@ export const CreateOrganizationPhase = ({
           render={({ field, fieldState }) => (
             <Field>
               <FieldLabel>Workspace Name</FieldLabel>
-              <Input {...field} placeholder="My First Workspace..." />
+              <Input {...field} placeholder="My First Workspace" />
               {fieldState.error && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}
