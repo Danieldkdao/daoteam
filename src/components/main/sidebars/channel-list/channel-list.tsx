@@ -38,24 +38,30 @@ export const ChannelList = ({
       </CollapsibleTrigger>
       <CollapsibleContent className="py-4 overflow-y-auto min-h-0 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-top-1 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-1">
         <div className="space-y-1">
-          {channels.map((c) => (
-            <Link
-              key={c.id}
-              href={`/workspace/${c.organizationId}/channel/${c.id}`}
-              className="w-full"
-            >
-              <Button variant="ghost" className="w-full">
-                <div className="flex items-center gap-2 w-full justify-start">
-                  <span className="text-lg font-medium text-muted-foreground">
-                    #
-                  </span>
-                  <span className="text-lg font-medium text-muted-foreground truncate">
-                    {c.slug}
-                  </span>
-                </div>
-              </Button>
-            </Link>
-          ))}
+          {channels.length ? (
+            channels.map((c) => (
+              <Link
+                key={c.id}
+                href={`/workspace/${c.organizationId}/channel/${c.id}`}
+                className="w-full"
+              >
+                <Button variant="ghost" className="w-full">
+                  <div className="flex items-center gap-2 w-full justify-start">
+                    <span className="text-lg font-medium text-muted-foreground">
+                      #
+                    </span>
+                    <span className="text-lg font-medium text-muted-foreground truncate">
+                      {c.slug}
+                    </span>
+                  </div>
+                </Button>
+              </Link>
+            ))
+          ) : (
+            <span className="text-sm font-medium text-muted-foreground">
+              No channels yet. Create one to start.
+            </span>
+          )}
         </div>
       </CollapsibleContent>
     </Collapsible>

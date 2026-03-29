@@ -1,7 +1,7 @@
 import { db } from "@/db/db";
 import { member, organization, user } from "@/db/schema";
 import { auth } from "@/lib/auth/auth";
-import { desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, getTableColumns, inArray, not } from "drizzle-orm";
 import { headers } from "next/headers";
 import { TRPCError } from "@trpc/server";
 import z from "zod";
@@ -106,5 +106,41 @@ export const workspaceRouter = createTRPCRouter({
         .where(eq(organization.id, orgInfo.id));
 
       return workspace;
+    }),
+  getMembers: protectedProcedure
+    .input(
+      z.object({
+        workspaceId: z.string().optional(),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      const { id: userId } = ctx.auth.user;
+
+      if (!input.workspaceId) return { currentUserMember: null, members: [] };
+
+      const existingUser = await checkExistingUser(userId);
+      const memberOrgInfo = await checkExistingWorkspaceMember({
+        userId,
+        workspaceId: input.workspaceId,
+      });
+
+      const members = await db
+        .select({
+          ...getTableColumns(member),
+          user: getTableColumns(user),
+        })
+        .from(member)
+        .innerJoin(user, eq(user.id, member.userId))
+        .where(
+          and(
+            eq(member.organizationId, memberOrgInfo.organization.id),
+            not(eq(member.userId, existingUser.id)),
+          ),
+        );
+
+      return {
+        currentUserMember: memberOrgInfo.member,
+        members,
+      };
     }),
 });

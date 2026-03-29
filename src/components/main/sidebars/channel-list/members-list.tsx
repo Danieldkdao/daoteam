@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import {
   Collapsible,
   CollapsibleContent,
@@ -7,11 +8,27 @@ import {
 } from "@/components/ui/collapsible";
 import { UserAvatar } from "@/components/user-avatar";
 import { cn } from "@/lib/utils";
-import { ChevronDownIcon } from "lucide-react";
+import { useTRPC } from "@/trpc/client";
+import { useQuery } from "@tanstack/react-query";
+import { ChevronDownIcon, UsersIcon } from "lucide-react";
+import { useParams } from "next/navigation";
 import { useState } from "react";
 
-export const MembersList = () => {
+export const MembersListView = () => {
+  const { workspaceId }: { workspaceId: string | undefined } = useParams();
+  const trpc = useTRPC();
+  const {
+    data: memberData,
+    isPending,
+    isError,
+  } = useQuery(trpc.workspace.getMembers.queryOptions({ workspaceId }));
   const [open, setOpen] = useState(true);
+
+  const workspaceMembers = memberData?.members;
+  const currentUserMember = memberData?.currentUserMember;
+
+  if (isPending) return <MembersListLoading />;
+  if (isError) return <MembersListError />;
 
   return (
     <div
@@ -39,30 +56,59 @@ export const MembersList = () => {
         <CollapsibleContent className="flex-1 min-h-0 overflow-hidden data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-top-1 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-1">
           <div className="py-4 overflow-y-auto h-full min-h-0">
             <div className="space-y-1">
-              {Array.from({ length: 12 }).map((_, index) => (
-                <div
-                  key={index}
-                  className="w-full hover:bg-muted hover:text-foreground p-2 rounded-md cursor-pointer"
-                >
-                  <div className="flex items-center gap-2.5 w-full justify-start">
-                    <UserAvatar
-                      name="Daniel Dao"
-                      image={null}
-                      className="size-12"
-                    />
-                    <div className="flex flex-col">
-                      <span className="text-lg font-semibold">Daniel Dao</span>
-                      <span className="text-muted-foreground">
-                        danieldkdao@gmail.com
-                      </span>
+              {workspaceMembers?.length ? (
+                workspaceMembers.map((m) => (
+                  <div
+                    key={m.id}
+                    className="w-full hover:bg-muted hover:text-foreground p-2 rounded-md cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2.5 w-full justify-start">
+                      <UserAvatar
+                        name={m.user.name}
+                        image={m.user.image}
+                        className="size-12"
+                      />
+                      <div className="flex flex-col">
+                        <span className="text-lg font-semibold">
+                          {m.user.name}
+                        </span>
+                        <span className="text-muted-foreground">
+                          {m.user.email}
+                        </span>
+                      </div>
                     </div>
                   </div>
+                ))
+              ) : currentUserMember?.role === "owner" ||
+                currentUserMember?.role === "admin" ? (
+                <div className="w-full p-5 rounded-lg border-2 border-dashed bg-card">
+                  <h1 className="text-lg font-bold">No Members Yet</h1>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Invite your teammates to get started.
+                  </p>
+                  {/* todo: implement invite members functionality */}
+                  <Button className="w-full mt-4">
+                    <UsersIcon />
+                    Invite Members
+                  </Button>
                 </div>
-              ))}
+              ) : (
+                <span className="text-sm font-medium text-muted-foreground">
+                  No members yet. Invite members to get started.
+                </span>
+              )}
             </div>
           </div>
         </CollapsibleContent>
       </Collapsible>
     </div>
   );
+};
+
+const MembersListLoading = () => {
+  return <div>loading</div>;
+};
+
+const MembersListError = () => {
+  return <div>error</div>;
 };
