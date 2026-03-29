@@ -6,6 +6,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { Skeleton } from "@/components/ui/skeleton";
 import { UserAvatar } from "@/components/user-avatar";
 import { cn } from "@/lib/utils";
 import { useTRPC } from "@/trpc/client";
@@ -106,9 +107,39 @@ export const MembersListView = () => {
 };
 
 const MembersListLoading = () => {
-  return <div>loading</div>;
+  return (
+    <div className="border-t flex h-90 flex-col overflow-hidden p-5">
+      <div className="flex items-center justify-between">
+        <Skeleton className="h-5 w-18 rounded-full" />
+        <Skeleton className="size-4 rounded-full" />
+      </div>
+      <div className="mt-4 space-y-3 overflow-hidden">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div key={index} className="flex items-center gap-3 rounded-lg p-2">
+            <Skeleton className="size-12 rounded-full" />
+            <div className="min-w-0 flex-1 space-y-2">
+              <Skeleton className="h-5 w-32 rounded-md" />
+              <Skeleton className="h-4 w-44 max-w-full rounded-md" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 };
 
 const MembersListError = () => {
-  return <div>error</div>;
+  return (
+    <div className="border-t flex h-70 flex-col p-5">
+      <div className="rounded-lg border border-dashed border-destructive/35 bg-destructive/8 p-4">
+        <h2 className="text-sm font-semibold text-destructive">
+          Unable to load members
+        </h2>
+        <p className="mt-1 text-sm text-destructive/80">
+          Something went wrong while loading the workspace members. Please
+          refresh and try again.
+        </p>
+      </div>
+    </div>
+  );
 };

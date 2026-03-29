@@ -1,5 +1,6 @@
 "use client";
 
+import { Skeleton } from "@/components/ui/skeleton";
 import { useTRPC } from "@/trpc/client";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
@@ -29,9 +30,28 @@ export const ChannelListHeaderView = () => {
 };
 
 const ChannelListHeaderLoading = () => {
-  return <div>loading</div>;
+  return (
+    <div className="px-5 py-6 border-b">
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-24 rounded-full" />
+        <Skeleton className="h-9 w-40 rounded-xl" />
+      </div>
+    </div>
+  );
 };
 
 const ChannelListHeaderError = () => {
-  return <div>error</div>;
+  return (
+    <div className="px-5 py-4 border-b">
+      <div className="rounded-lg border border-dashed border-destructive/35 bg-destructive/8 p-4">
+        <h2 className="text-sm font-semibold text-destructive">
+          Unable to load workspace
+        </h2>
+        <p className="mt-1 text-sm text-destructive/80">
+          Something went wrong while loading the workspace header. Please
+          refresh and try again.
+        </p>
+      </div>
+    </div>
+  );
 };

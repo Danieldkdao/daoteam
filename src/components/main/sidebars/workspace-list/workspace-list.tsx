@@ -5,6 +5,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn, getColorCombination } from "@/lib/utils";
 import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -23,11 +24,27 @@ export const WorkspaceListView = () => {
 };
 
 const WorkspaceListLoading = () => {
-  return <div>loading</div>;
+  return (
+    <div className="flex flex-col gap-2 w-full overflow-auto">
+      {Array.from({ length: 5 }).map((_, index) => (
+        <Skeleton key={index} className="h-20 w-full rounded-xl" />
+      ))}
+    </div>
+  );
 };
 
 const WorkspaceListError = () => {
-  return <div>error</div>;
+  return (
+    <div className="rounded-lg border border-dashed border-destructive/35 bg-destructive/8 p-3">
+      <h2 className="text-sm font-semibold text-destructive">
+        Unable to load workspaces
+      </h2>
+      <p className="mt-1 text-xs leading-5 text-destructive/80">
+        Something went wrong while loading your workspaces. Please refresh and
+        try again.
+      </p>
+    </div>
+  );
 };
 
 const WorkspaceListSuspense = () => {

@@ -4,6 +4,7 @@ import { UserProfileSection } from "./user-profile-section";
 import { Suspense } from "react";
 import { WorkspaceListView } from "./workspace-list";
 import { getQueryClient, trpc } from "@/trpc/server";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const WorkspaceListSidebar = async () => {
   const queryClient = getQueryClient();
@@ -18,11 +19,18 @@ export const WorkspaceListSidebar = async () => {
 
           <CreateWorkspaceButton />
         </div>
-        <Suspense>
-          {/* todo: add loading skeleton */}
+        <Suspense fallback={<UserProfileSectionLoading />}>
           <UserProfileSection />
         </Suspense>
       </div>
     </HydrationBoundary>
+  );
+};
+
+const UserProfileSectionLoading = () => {
+  return (
+    <div className="w-full h-20 rounded-lg border bg-card p-4 flex items-center justify-center">
+      <Skeleton className="size-11 rounded-full" />
+    </div>
   );
 };
