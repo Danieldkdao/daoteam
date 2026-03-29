@@ -1,16 +1,25 @@
+"use client";
+
 import { Suspense } from "react";
 import { Skeleton } from "../ui/skeleton";
 import { MessageHeader } from "../messages/message-header";
 import { TextEditor } from "../editor/editor";
+import { useTRPC } from "@/trpc/client";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { ErrorBoundary } from "react-error-boundary";
+import { MessagesList } from "../messages/messages-list";
 
 type ChannelIdViewProps = {
-  params: Promise<{ workspaceId: string; channelId: string }>;
+  workspaceId: string;
+  channelId: string;
 };
 
 export const ChannelIdView = (props: ChannelIdViewProps) => {
   return (
     <Suspense fallback={<ChannelIdLoading />}>
-      <ChannelIdSuspense {...props} />
+      <ErrorBoundary fallback={<ChannelIdError />}>
+        <ChannelIdSuspense {...props} />
+      </ErrorBoundary>
     </Suspense>
   );
 };
@@ -37,13 +46,25 @@ const ChannelIdLoading = () => {
   );
 };
 
-const ChannelIdSuspense = async ({ params }: ChannelIdViewProps) => {
-  await params;
+const ChannelIdError = () => {
+  return <div>error</div>;
+};
+
+const ChannelIdSuspense = ({ workspaceId, channelId }: ChannelIdViewProps) => {
+  const trpc = useTRPC();
+  const { data } = useSuspenseQuery(
+    trpc.message.getMany.queryOptions({
+      channelId,
+      workspaceId,
+    }),
+  );
+  const channel = data.channel;
+  const messages = data.messages;
 
   return (
     <div className="flex flex-col h-full">
-      <MessageHeader channelSlug="answer" />
-      <div className="flex-1 h-full w-full"></div>
+      <MessageHeader channelSlug={channel.slug} />
+      <MessagesList messages={messages} />
       <div className="p-4 border-t">
         <TextEditor />
       </div>
