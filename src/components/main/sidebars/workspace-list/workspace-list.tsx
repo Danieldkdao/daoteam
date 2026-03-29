@@ -1,14 +1,20 @@
+"use client";
+
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { getWorkspaces } from "@/lib/actions/workspace.action";
 import { cn, getColorCombination } from "@/lib/utils";
+import { useTRPC } from "@/trpc/client";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import Link from "next/link";
 
-export const WorkspaceList = async () => {
-  const workspaces = await getWorkspaces();
+export const WorkspaceList = () => {
+  const trpc = useTRPC();
+  const { data: workspaces } = useSuspenseQuery(
+    trpc.workspace.getMany.queryOptions(),
+  );
 
   return (
     <div className="flex flex-col gap-2 w-full overflow-auto">

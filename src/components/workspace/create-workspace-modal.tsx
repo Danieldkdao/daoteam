@@ -9,9 +9,10 @@ import { Field, FieldError, FieldLabel } from "../ui/field";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { LoadingSwap } from "../ui/loading-swap";
-import { createWorkspace } from "@/lib/actions/workspace.action";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useTRPC } from "@/trpc/client";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const formSchema = z.object({
   name: z
@@ -32,6 +33,8 @@ export const CreateWorkspaceModal = ({
   setOpen,
 }: CreateWorkspaceModalProps) => {
   const router = useRouter();
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
   const form = useForm<FormType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -39,17 +42,28 @@ export const CreateWorkspaceModal = ({
     },
   });
 
+  const createWorkspace = useMutation(
+    trpc.workspace.create.mutationOptions({
+      onSuccess: async ({ message, workspace }) => {
+        await queryClient.invalidateQueries(trpc.workspace.getMany.queryOptions());
+
+        toast.success(message);
+        router.push(`/workspace/${workspace.id}`);
+        setOpen(false);
+        form.reset();
+      },
+      onError: (error) => {
+        toast.error(error.message);
+      },
+    }),
+  );
+
   const handleCreateWorkspace = async ({ name }: FormType) => {
-    const response = await createWorkspace(name);
-    if (response.error || !response.workspace) {
-      toast.error(response.message);
-    } else {
-      toast.success(response.message);
-      router.push(`/workspace/${response.workspace.id}`);
-      setOpen(false);
-      form.reset();
-    }
+    await createWorkspace.mutateAsync({ name });
   };
+
+  const pending =
+    form.formState.isSubmitting || createWorkspace.isPending;
 
   return (
     <ResponsiveDialog
@@ -76,9 +90,9 @@ export const CreateWorkspaceModal = ({
         />
         <Button
           className="w-full"
-          disabled={form.formState.isSubmitting || !form.formState.isDirty}
+          disabled={pending || !form.formState.isDirty}
         >
-          <LoadingSwap isLoading={form.formState.isSubmitting}>
+          <LoadingSwap isLoading={pending}>
             Create Workspace
           </LoadingSwap>
         </Button>

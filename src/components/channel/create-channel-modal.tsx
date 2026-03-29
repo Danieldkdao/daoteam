@@ -5,7 +5,6 @@ import { ResponsiveDialog } from "../responsive-dialog";
 import z from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createChannel } from "@/lib/actions/channel.action";
 import { toast } from "sonner";
 import { useParams, useRouter } from "next/navigation";
 import { Field, FieldDescription, FieldError, FieldLabel } from "../ui/field";
@@ -13,6 +12,8 @@ import { Input } from "../ui/input";
 import { generateSlug } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { LoadingSwap } from "../ui/loading-swap";
+import { useTRPC } from "@/trpc/client";
+import { useMutation } from "@tanstack/react-query";
 
 const formSchema = z.object({
   name: z
@@ -33,7 +34,8 @@ export const CreateChannelModal = ({
   setOpen,
 }: CreateChannelModalProps) => {
   const router = useRouter();
-  const params = useParams();
+  const params = useParams<{ workspaceId?: string }>();
+  const trpc = useTRPC();
   const form = useForm<FormType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -41,24 +43,32 @@ export const CreateChannelModal = ({
     },
   });
 
-  const orgId = params.workspaceId as string;
+  const orgId = params.workspaceId;
+
+  const createChannel = useMutation(
+    trpc.channel.create.mutationOptions({
+      onSuccess: ({ channel, message }) => {
+        toast.success(message);
+        router.push(
+          `/workspace/${channel.organizationId}/channel/${channel.id}`,
+        );
+        setOpen(false);
+        form.reset();
+      },
+      onError: (error) => {
+        toast.error(error.message);
+      },
+    }),
+  );
 
   const handleCreateChannel = async ({ name }: FormType) => {
     if (!orgId) return toast.error("No workspace found.");
-    const response = await createChannel({ name, orgId });
-    if (response.error || !response.channel) {
-      toast.error(response.message);
-    } else {
-      toast.success("Channel created successfully!");
-      router.push(
-        `/workspace/${response.channel.organizationId}/channel/${response.channel.id}`,
-      );
-      setOpen(false);
-      form.reset();
-    }
+    await createChannel.mutateAsync({ name, orgId });
   };
 
   const nameValue = form.watch("name");
+  const pending =
+    form.formState.isSubmitting || createChannel.isPending;
 
   return (
     <ResponsiveDialog
@@ -92,10 +102,10 @@ export const CreateChannelModal = ({
           )}
         />
         <Button
-          disabled={form.formState.isSubmitting || !form.formState.isDirty}
+          disabled={pending || !form.formState.isDirty}
           className="w-full"
         >
-          <LoadingSwap isLoading={form.formState.isSubmitting}>
+          <LoadingSwap isLoading={pending}>
             Create Channel
           </LoadingSwap>
         </Button>

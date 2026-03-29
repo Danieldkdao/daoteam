@@ -1,12 +1,14 @@
 "use client";
 
-import { continueWithFreePlan } from "@/lib/actions/pricing.action";
 import { authClient } from "@/lib/auth/auth-client";
+import { useTRPC } from "@/trpc/client";
+import { useMutation } from "@tanstack/react-query";
 import { CheckIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
+import { LoadingSwap } from "../ui/loading-swap";
 import { Separator } from "../ui/separator";
 
 type PlanCardProps = {
@@ -27,18 +29,25 @@ export const PlanCard = ({
   currentWorkspaceId,
 }: PlanCardProps) => {
   const router = useRouter();
+  const trpc = useTRPC();
   const { data: activeWorkspace } = authClient.useActiveOrganization();
+  const continueWithFreePlan = useMutation(
+    trpc.pricing.continueWithFreePlan.mutationOptions({
+      onSuccess: () => {
+        router.push("/workspace");
+      },
+      onError: (error) => {
+        toast.error(error.message);
+      },
+    }),
+  );
 
   const handleSelectPlan = async () => {
     if (plan === "free") {
-      const response = await continueWithFreePlan();
-      if (response.error) {
-        toast.error(response.error);
-      } else {
-        router.push("/workspace");
-      }
+      await continueWithFreePlan.mutateAsync();
       return;
     }
+
     if (!currentWorkspaceId && !activeWorkspace?.id)
       return toast.error(
         "Something went wrong. Please try again or come back later.",
@@ -84,7 +93,14 @@ export const PlanCard = ({
             </div>
           ))}
         </div>
-        <Button onClick={handleSelectPlan}>Select plan</Button>
+        <Button
+          onClick={handleSelectPlan}
+          disabled={continueWithFreePlan.isPending}
+        >
+          <LoadingSwap isLoading={continueWithFreePlan.isPending}>
+            Select plan
+          </LoadingSwap>
+        </Button>
         <span className="text-muted-foreground text-sm font-medium">
           *All limits are shared across the organization.
         </span>

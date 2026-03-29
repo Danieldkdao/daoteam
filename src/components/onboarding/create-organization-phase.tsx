@@ -9,7 +9,8 @@ import { Field, FieldError, FieldLabel } from "../ui/field";
 import { Input } from "../ui/input";
 import { LoadingSwap } from "../ui/loading-swap";
 import { OnboardingClientPhaseProps } from "@/lib/types";
-import { createWorkspace } from "@/lib/actions/workspace.action";
+import { useTRPC } from "@/trpc/client";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const formSchema = z.object({
   name: z.string().trim().min(1, { error: "Please enter an workspace name." }),
@@ -22,6 +23,8 @@ export const CreateOrganizationPhase = ({
   setOnboardingPhase,
   setCurrentWorkspaceId,
 }: OnboardingClientPhaseProps) => {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
   const form = useForm<FormType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -29,16 +32,30 @@ export const CreateOrganizationPhase = ({
     },
   });
 
+  const createWorkspace = useMutation(
+    trpc.workspace.create.mutationOptions({
+      onSuccess: async ({ message, workspace }) => {
+        await queryClient.invalidateQueries(trpc.workspace.getMany.queryOptions());
+
+        toast.success(message);
+        setCurrentWorkspaceId(workspace.id);
+        setOnboardingPhase("select-plan");
+      },
+      onError: (error) => {
+        toast.error(error.message);
+      },
+    }),
+  );
+
   const handleCreateOrganization = async ({ name }: FormType) => {
-    const response = await createWorkspace(name, true);
-    if (response.error || !response.workspace) {
-      toast.error(response.message);
-    } else {
-      toast.success(response.message);
-      setCurrentWorkspaceId(response.workspace.id);
-      setOnboardingPhase("select-plan");
-    }
+    await createWorkspace.mutateAsync({
+      name,
+      onboarding: true,
+    });
   };
+
+  const pending =
+    form.formState.isSubmitting || createWorkspace.isPending;
 
   return (
     <div className="w-full max-w-100 space-y-4">
@@ -61,10 +78,8 @@ export const CreateOrganizationPhase = ({
             </Field>
           )}
         />
-        <Button className="w-full" disabled={form.formState.isSubmitting}>
-          <LoadingSwap isLoading={form.formState.isSubmitting}>
-            Continue
-          </LoadingSwap>
+        <Button className="w-full" disabled={pending}>
+          <LoadingSwap isLoading={pending}>Continue</LoadingSwap>
         </Button>
       </form>
     </div>
