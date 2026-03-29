@@ -7,6 +7,7 @@ import { TRPCError } from "@trpc/server";
 import z from "zod";
 import { protectedProcedure, createTRPCRouter } from "../init";
 import { generateSlug } from "@/lib/utils";
+import { checkExistingUser, checkExistingWorkspaceMember } from "../helpers";
 
 export const workspaceRouter = createTRPCRouter({
   create: protectedProcedure
@@ -82,4 +83,28 @@ export const workspaceRouter = createTRPCRouter({
       .where(inArray(organization.id, workspaceIds))
       .orderBy(desc(organization.createdAt));
   }),
+  getOne: protectedProcedure
+    .input(
+      z.object({
+        workspaceId: z.string().optional(),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      const { id: userId } = ctx.auth.user;
+
+      if (!input.workspaceId) return null;
+
+      await checkExistingUser(userId);
+      const { organization: orgInfo } = await checkExistingWorkspaceMember({
+        userId,
+        workspaceId: input.workspaceId,
+      });
+
+      const [workspace] = await db
+        .select()
+        .from(organization)
+        .where(eq(organization.id, orgInfo.id));
+
+      return workspace;
+    }),
 });

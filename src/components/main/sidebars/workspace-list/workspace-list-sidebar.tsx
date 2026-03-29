@@ -14,10 +14,7 @@ export const WorkspaceListSidebar = async () => {
     <HydrationBoundary state={dehydrate(queryClient)}>
       <div className="w-28 bg-sidebar h-full border-r p-4 flex flex-col gap-2">
         <div className="flex-1 h-full flex flex-col gap-2">
-          <Suspense>
-            {/* todo: add loading skeleton */}
-            <WorkspaceListView />
-          </Suspense>
+          <WorkspaceListView />
 
           <CreateWorkspaceButton />
         </div>

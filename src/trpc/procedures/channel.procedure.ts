@@ -90,4 +90,36 @@ export const channelRouter = createTRPCRouter({
 
       return channels;
     }),
+  // todo: remove this if useless in the future
+  getOne: protectedProcedure
+    .input(
+      z.object({
+        workspaceId: z.string().optional(),
+        channelId: z.uuid().optional(),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      const { workspaceId, channelId } = input;
+      const { id: userId } = ctx.auth.user;
+
+      if (!workspaceId || !channelId) return null;
+
+      await checkExistingUser(userId);
+      const memberOrgData = await checkExistingWorkspaceMember({
+        userId,
+        workspaceId,
+      });
+
+      const [existingChannel] = await db
+        .select()
+        .from(ChannelTable)
+        .where(
+          and(
+            eq(ChannelTable.id, channelId),
+            eq(ChannelTable.organizationId, memberOrgData.organization.id),
+          ),
+        );
+
+      return existingChannel ?? null;
+    }),
 });

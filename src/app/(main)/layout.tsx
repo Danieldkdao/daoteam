@@ -2,7 +2,7 @@ import { ChannelListSidebar } from "@/components/main/sidebars/channel-list/chan
 import { WorkspaceListSidebar } from "@/components/main/sidebars/workspace-list/workspace-list-sidebar";
 import { ReactNode } from "react";
 
-const MainLayout = ({ children }: { children: ReactNode }) => {
+const MainLayout = async ({ children }: { children: ReactNode }) => {
   return (
     <div className="flex w-full h-svh overflow-hidden">
       <div className="flex h-full">
