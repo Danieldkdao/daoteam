@@ -5,11 +5,11 @@ import { desc, eq, inArray } from "drizzle-orm";
 import { headers } from "next/headers";
 import { TRPCError } from "@trpc/server";
 import z from "zod";
-import { authedProcedure, createTRPCRouter } from "../init";
+import { protectedProcedure, createTRPCRouter } from "../init";
 import { generateSlug } from "@/lib/utils";
 
 export const workspaceRouter = createTRPCRouter({
-  create: authedProcedure
+  create: protectedProcedure
     .input(
       z.object({
         name: z.string().trim().min(1),
@@ -62,13 +62,15 @@ export const workspaceRouter = createTRPCRouter({
         });
       }
     }),
-  getMany: authedProcedure.query(async ({ ctx }) => {
+  getMany: protectedProcedure.query(async ({ ctx }) => {
     const teamMembers = await db
       .select()
       .from(member)
       .where(eq(member.userId, ctx.auth.user.id));
 
-    const workspaceIds = [...new Set(teamMembers.map((tm) => tm.organizationId))];
+    const workspaceIds = [
+      ...new Set(teamMembers.map((tm) => tm.organizationId)),
+    ];
 
     if (workspaceIds.length === 0) {
       return [];

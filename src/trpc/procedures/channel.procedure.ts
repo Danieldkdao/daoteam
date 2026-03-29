@@ -2,13 +2,14 @@ import { db } from "@/db/db";
 import { ChannelTable, member } from "@/db/schema";
 import { NO_PERMISSIONS_MESSAGE } from "@/lib/constants";
 import { generateSlug } from "@/lib/utils";
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import z from "zod";
-import { authedProcedure, createTRPCRouter } from "../init";
+import { protectedProcedure, createTRPCRouter } from "../init";
+import { checkExistingUser, checkExistingWorkspaceMember } from "../helpers";
 
 export const channelRouter = createTRPCRouter({
-  create: authedProcedure
+  create: protectedProcedure
     .input(
       z.object({
         orgId: z.string().trim().min(1),
@@ -63,5 +64,30 @@ export const channelRouter = createTRPCRouter({
           message: "Something went wrong. Please try again or come back later.",
         });
       }
+    }),
+  getMany: protectedProcedure
+    .input(
+      z.object({
+        workspaceId: z.string().optional(),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      const { id: userId } = ctx.auth.user;
+
+      if (!input.workspaceId) return [];
+
+      await checkExistingUser(userId);
+      const { organization } = await checkExistingWorkspaceMember({
+        userId,
+        workspaceId: input.workspaceId,
+      });
+
+      const channels = await db
+        .select()
+        .from(ChannelTable)
+        .where(eq(ChannelTable.organizationId, organization.id))
+        .orderBy(desc(ChannelTable.createdAt));
+
+      return channels;
     }),
 });

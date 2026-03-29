@@ -9,8 +9,28 @@ import { cn, getColorCombination } from "@/lib/utils";
 import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { Suspense } from "react";
+import { ErrorBoundary } from "react-error-boundary";
 
-export const WorkspaceList = () => {
+export const WorkspaceListView = () => {
+  return (
+    <Suspense fallback={<WorkspaceListLoading />}>
+      <ErrorBoundary fallback={<WorkspaceListError />}>
+        <WorkspaceListSuspense />
+      </ErrorBoundary>
+    </Suspense>
+  );
+};
+
+const WorkspaceListLoading = () => {
+  return <div>loading</div>;
+};
+
+const WorkspaceListError = () => {
+  return <div>error</div>;
+};
+
+const WorkspaceListSuspense = () => {
   const trpc = useTRPC();
   const { data: workspaces } = useSuspenseQuery(
     trpc.workspace.getMany.queryOptions(),

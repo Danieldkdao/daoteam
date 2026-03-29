@@ -2,10 +2,10 @@ import { db } from "@/db/db";
 import { user } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
-import { authedProcedure, createTRPCRouter } from "../init";
+import { protectedProcedure, createTRPCRouter } from "../init";
 
 export const pricingRouter = createTRPCRouter({
-  continueWithFreePlan: authedProcedure.mutation(async ({ ctx }) => {
+  continueWithFreePlan: protectedProcedure.mutation(async ({ ctx }) => {
     try {
       await db
         .update(user)

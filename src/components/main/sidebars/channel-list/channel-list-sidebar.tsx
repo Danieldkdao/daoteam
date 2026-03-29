@@ -1,4 +1,4 @@
-import { ChannelList } from "./channel-list";
+import { ChannelListView } from "./channel-list-view";
 import { MembersList } from "./members-list";
 
 export const ChannelListSidebar = () => {
@@ -7,7 +7,7 @@ export const ChannelListSidebar = () => {
       <div className="px-5 py-6 border-b">
         <h1 className="text-3xl font-bold">DaoTeam Main</h1>
       </div>
-      <ChannelList />
+      <ChannelListView />
       <MembersList />
     </div>
   );
