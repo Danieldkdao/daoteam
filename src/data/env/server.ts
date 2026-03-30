@@ -18,6 +18,7 @@ export const envServer = createEnv({
     STRIPE_WEBHOOK_SECRET: z.string().min(1),
     STRIPE_PRO_PRICE_ID: z.string().min(1),
     STRIPE_ENTERPRISE_PRICE_ID: z.string().min(1),
+    WS_ALLOWED_ORIGINS: z.string().min(1),
   },
   emptyStringAsUndefined: true,
   experimental__runtimeEnv: true,
