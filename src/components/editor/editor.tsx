@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import { Markdown } from "tiptap-markdown";
 import {
   BoldIcon,
   Code2Icon,
@@ -17,8 +18,30 @@ import {
   Undo2Icon,
 } from "lucide-react";
 import { Button } from "../ui/button";
+import { useState } from "react";
+import { toast } from "sonner";
+import { LoadingSwap } from "../ui/loading-swap";
 
-export const TextEditor = () => {
+type TextEditorProps = {
+  channelId: string;
+  workspaceId: string;
+};
+
+export const TextEditor = (props: TextEditorProps) => {
+  // const sendMessage = useMutation(
+  //   trpc.message.create.mutationOptions({
+  //     onSuccess: () => {
+  //       queryClient.invalidateQueries(trpc.message.getMany.queryOptions(props));
+  //       setMessage("");
+  //     },
+  //     onError: () => {
+  //       toast.error(
+  //         "Something went wrong. Please try again or come back later.",
+  //       );
+  //     },
+  //   }),
+  // );
+  const [message, setMessage] = useState("");
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -26,8 +49,12 @@ export const TextEditor = () => {
           levels: [1, 2, 3],
         },
       }),
+      Markdown,
     ],
-    content: "<p></p>",
+    content: message,
+    onUpdate({ editor }) {
+      setMessage((editor.storage as any).markdown.getMarkdown());
+    },
     autofocus: "end",
     editable: true,
     injectCSS: true,
@@ -44,6 +71,12 @@ export const TextEditor = () => {
   if (!editor) {
     return null;
   }
+
+  // const handleSendMessage = async () => {
+  //   if (!message.trim())
+  //     return toast.error("Please enter a message before sending.");
+  //   await sendMessage.mutateAsync({ ...props, message });
+  // };
 
   return (
     <div className="w-full rounded-lg border bg-sidebar shadow-xs">
@@ -118,20 +151,35 @@ export const TextEditor = () => {
 
         <div className="mx-1 h-6 w-px bg-border" />
 
-        <Button className="rounded-full bg-linear-90 from-purple-700 to-fuchsia-600 text-white border-none px-4">
+        <Button
+          className="rounded-full bg-linear-90 from-purple-700 to-fuchsia-600 text-white border-none px-4"
+          // disabled={!message.trim() || sendMessage.isPending}
+        >
           <SparklesIcon className="text-white" />
           Compose
         </Button>
       </div>
       <EditorContent editor={editor} className="w-full" />
       <div className="flex items-center justify-between gap-2 px-3 py-3">
-        <Button variant="outline">
+        <Button
+          variant="outline"
+          // disabled={sendMessage.isPending}
+        >
           <ImageIcon />
           Attach Image
         </Button>
-        <Button>
-          <SendIcon />
-          Send Message
+        <Button
+        // disabled={!message.trim() || sendMessage.isPending}
+        // onClick={handleSendMessage}
+        >
+          {/* <LoadingSwap 
+          // isLoading={sendMessage.isPending}
+          >
+            <div className="flex items-center gap-2">
+              <SendIcon />
+              Send Message
+            </div>
+          </LoadingSwap> */}
         </Button>
       </div>
     </div>

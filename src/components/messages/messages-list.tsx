@@ -1,5 +1,6 @@
 import { GetProcedureOutput } from "@/trpc/types";
 import { BanIcon } from "lucide-react";
+import { Message } from "./message";
 
 export const MessagesList = ({
   messages,
@@ -7,9 +8,9 @@ export const MessagesList = ({
   messages: GetProcedureOutput<"message", "getMany">["messages"];
 }) => {
   return (
-    <div className="flex-1 h-full w-full overflow-auto min-h-0 max-h-full p-5">
+    <div className="flex-1 h-full w-full overflow-auto min-h-0 max-h-full p-5 space-y-2">
       {messages.length ? (
-        messages.map((m) => null)
+        messages.map((m) => <Message key={m.id} message={m} />)
       ) : (
         <div className="w-full h-full flex items-center justify-center">
           <div className="flex flex-col gap-4 items-center">

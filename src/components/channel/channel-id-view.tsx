@@ -66,7 +66,7 @@ const ChannelIdSuspense = ({ workspaceId, channelId }: ChannelIdViewProps) => {
       <MessageHeader channelSlug={channel.slug} />
       <MessagesList messages={messages} />
       <div className="p-4 border-t">
-        <TextEditor />
+        <TextEditor workspaceId={workspaceId} channelId={channelId} />
       </div>
     </div>
   );

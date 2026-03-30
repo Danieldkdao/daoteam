@@ -6,8 +6,8 @@ import {
   checkExistingWorkspaceMember,
 } from "../helpers";
 import { db } from "@/db/db";
-import { MessageTable } from "@/db/schema";
-import { and, eq } from "drizzle-orm";
+import { MessageTable, user } from "@/db/schema";
+import { and, eq, getTableColumns } from "drizzle-orm";
 
 export const messageRouter = createTRPCRouter({
   getMany: protectedProcedure
@@ -33,8 +33,12 @@ export const messageRouter = createTRPCRouter({
       });
 
       const channelMessages = await db
-        .select()
+        .select({
+          ...getTableColumns(MessageTable),
+          user: getTableColumns(user),
+        })
         .from(MessageTable)
+        .innerJoin(user, eq(user.id, MessageTable.userId))
         .where(
           and(
             eq(MessageTable.channelId, channel.id),
