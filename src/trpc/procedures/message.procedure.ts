@@ -9,7 +9,8 @@ import { SOCKET_EVENT } from "@/lib/ws/events";
 import { broadcastToChannel } from "@/lib/ws/server";
 import { db } from "@/db/db";
 import { MessageTable, user } from "@/db/schema";
-import { and, eq, getTableColumns } from "drizzle-orm";
+import { and, asc, eq, getTableColumns } from "drizzle-orm";
+import { TRPCError } from "@trpc/server";
 
 export const messageRouter = createTRPCRouter({
   getMany: protectedProcedure
@@ -45,7 +46,8 @@ export const messageRouter = createTRPCRouter({
             eq(MessageTable.channelId, channel.id),
             eq(MessageTable.organizationId, orgInfo.id),
           ),
-        );
+        )
+        .orderBy(asc(MessageTable.createdAt), asc(MessageTable.id));
 
       return {
         channel,
@@ -87,11 +89,61 @@ export const messageRouter = createTRPCRouter({
         .returning();
 
       broadcastToChannel(channel.id, {
-        type: SOCKET_EVENT.MESSAGE_CREATED,
+        type: SOCKET_EVENT.MESSAGE_CREATED_EDITED,
         channelId: channel.id,
         messageId: created.id,
       });
 
       return created;
+    }),
+  edit: protectedProcedure
+    .input(
+      z.object({
+        workspaceId: z.string(),
+        channelId: z.uuid(),
+        message: z.string(),
+        messageId: z.uuid(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { workspaceId, channelId, message, messageId } = input;
+      const { id: userId } = ctx.auth.user;
+
+      const existingUser = await checkExistingUserTRPC(userId);
+      const { organization: orgInfo } = await checkExistingWorkspaceMemberTRPC({
+        userId: existingUser.id,
+        workspaceId,
+      });
+      const existingChannel = await checkExistingChannelTRPC({
+        channelId,
+        workspaceId: orgInfo.id,
+      });
+
+      const [updatedMessage] = await db
+        .update(MessageTable)
+        .set({
+          message,
+        })
+        .where(
+          and(
+            eq(MessageTable.userId, existingUser.id),
+            eq(MessageTable.id, messageId),
+            eq(MessageTable.channelId, existingChannel.id),
+            eq(MessageTable.organizationId, orgInfo.id),
+          ),
+        )
+        .returning();
+
+      if (!updatedMessage) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "ISE" });
+      }
+
+      broadcastToChannel(existingChannel.id, {
+        type: SOCKET_EVENT.MESSAGE_CREATED_EDITED,
+        channelId: existingChannel.id,
+        messageId: updatedMessage.id,
+      });
+
+      return updatedMessage;
     }),
 });

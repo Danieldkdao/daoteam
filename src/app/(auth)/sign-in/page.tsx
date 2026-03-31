@@ -89,7 +89,6 @@ const SignInPage = () => {
       callbackURL: "/workspace",
       fetchOptions: {
         onSuccess: () => {
-          toast.success("Signed in successfully!");
           setSocialSignInLoading(false);
         },
         onError: (error) => {

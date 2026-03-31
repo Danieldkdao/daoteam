@@ -93,7 +93,6 @@ const SignInPage = () => {
       callbackURL: "/onboarding",
       fetchOptions: {
         onSuccess: () => {
-          toast.success("Account created successfully!");
           setSocialSignInLoading(false);
         },
         onError: (error) => {

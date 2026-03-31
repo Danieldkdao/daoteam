@@ -1,0 +1,73 @@
+"use client";
+
+import { getEditorConfig } from "@/lib/utils";
+import { useTRPC } from "@/trpc/client";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEditor } from "@tiptap/react";
+import { ImageIcon, SendIcon } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { TextEditor } from "../editor/editor";
+import { Button } from "../ui/button";
+import { LoadingSwap } from "../ui/loading-swap";
+
+type SendMessageFieldProps = {
+  channelId: string;
+  workspaceId: string;
+};
+
+export const SendMessageField = (props: SendMessageFieldProps) => {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const [message, setMessage] = useState("");
+  const editor = useEditor(getEditorConfig({ message, setMessage }));
+
+  const trimmedMessage = message.trim();
+
+  const sendMessage = useMutation(
+    trpc.message.create.mutationOptions({
+      onSuccess: async () => {
+        await queryClient.invalidateQueries(
+          trpc.message.getMany.queryOptions(props),
+        );
+        editor?.commands.clearContent();
+        setMessage("");
+      },
+      onError: (error) => {
+        toast.error(error.message);
+      },
+    }),
+  );
+
+  const handleSendMessage = async () => {
+    if (!trimmedMessage) {
+      toast.error("Please enter a message before sending.");
+      return;
+    }
+
+    await sendMessage.mutateAsync({ ...props, message: trimmedMessage });
+  };
+
+  return (
+    <div className="w-full rounded-lg border bg-sidebar shadow-xs">
+      <TextEditor editor={editor} />
+      <div className="flex items-center justify-between gap-2 px-3 py-3">
+        <Button variant="outline" disabled={sendMessage.isPending}>
+          <ImageIcon />
+          Attach Image
+        </Button>
+        <Button
+          disabled={!trimmedMessage || sendMessage.isPending}
+          onClick={handleSendMessage}
+        >
+          <LoadingSwap isLoading={sendMessage.isPending}>
+            <div className="flex items-center gap-2">
+              <SendIcon />
+              Send Message
+            </div>
+          </LoadingSwap>
+        </Button>
+      </div>
+    </div>
+  );
+};

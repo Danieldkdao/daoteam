@@ -1,16 +1,16 @@
 "use client";
 
-import { Suspense } from "react";
-import { Skeleton } from "../ui/skeleton";
-import { MessageHeader } from "../messages/message-header";
-import { TextEditor } from "../editor/editor";
-import { useTRPC } from "@/trpc/client";
-import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { ErrorBoundary } from "react-error-boundary";
-import { MessagesList } from "../messages/messages-list";
 import { useChannelSocket } from "@/hooks/use-channel-socket";
 import { SOCKET_EVENT } from "@/lib/ws/events";
+import { useTRPC } from "@/trpc/client";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { Suspense } from "react";
+import { ErrorBoundary } from "react-error-boundary";
+import { MessageHeader } from "../messages/message-header";
 import { MessageSkeleton } from "../messages/message-skeleton";
+import { MessagesList } from "../messages/messages-list";
+import { SendMessageField } from "../messages/send-message";
+import { Skeleton } from "../ui/skeleton";
 
 type ChannelIdViewProps = {
   workspaceId: string;
@@ -82,7 +82,7 @@ const ChannelIdSuspense = ({ workspaceId, channelId }: ChannelIdViewProps) => {
   });
   useChannelSocket(channelId, workspaceId, (event) => {
     if (
-      event.type !== SOCKET_EVENT.MESSAGE_CREATED ||
+      event.type !== SOCKET_EVENT.MESSAGE_CREATED_EDITED ||
       event.channelId !== channelId
     ) {
       return;
@@ -99,7 +99,7 @@ const ChannelIdSuspense = ({ workspaceId, channelId }: ChannelIdViewProps) => {
       <MessageHeader channelSlug={channel.slug} />
       <MessagesList messages={messages} />
       <div className="p-4 border-t">
-        <TextEditor workspaceId={workspaceId} channelId={channelId} />
+        <SendMessageField channelId={channelId} workspaceId={workspaceId} />
       </div>
     </div>
   );

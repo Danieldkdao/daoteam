@@ -10,3 +10,14 @@ export type OnboardingClientPhaseProps = {
   currentWorkspaceId: string | null;
   setCurrentWorkspaceId: SetterType<string | null>;
 };
+
+export type MarkdownStorage = {
+  markdown: {
+    getMarkdown: () => string;
+  };
+};
+
+export type GetEditorConfigParams = {
+  message: string;
+  setMessage: SetterType<string>;
+};
