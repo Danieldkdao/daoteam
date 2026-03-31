@@ -23,6 +23,7 @@ export const reactionRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      console.log("did it run?");
       const { reaction, channelId, workspaceId, messageId } = input;
       const { id: userId } = ctx.auth.user;
 
@@ -87,9 +88,13 @@ export const reactionRouter = createTRPCRouter({
       }
 
       broadcastToChannel(existingChannel.id, {
-        type: SOCKET_EVENT.MESSAGE_CREATED_EDITED,
+        type: SOCKET_EVENT[
+          existingMessage.threadId
+            ? "THREAD_MESSAGE_CREATED"
+            : "MESSAGE_CREATED_EDITED"
+        ],
         channelId: existingChannel.id,
-        messageId: existingMessage.id,
+        messageId: existingMessage.threadId ?? existingMessage.id,
       });
 
       return reactionToReturn;

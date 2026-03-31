@@ -19,22 +19,30 @@ type EmojiPopoverButtonProps = {
   messageId: string;
   workspaceId: string;
   channelId: string;
+  forThread: boolean;
 };
 
 export const EmojiPopoverButton = (props: EmojiPopoverButtonProps) => {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
+  const { forThread, ...info } = props;
 
   const createReaction = useMutation(
     trpc.reaction.create.mutationOptions({
       onSuccess: async () => {
-        await queryClient.invalidateQueries(
-          trpc.message.getMany.queryOptions({
-            channelId: props.channelId,
-            workspaceId: props.workspaceId,
-          }),
-        );
+        if (forThread) {
+          await queryClient.invalidateQueries(
+            trpc.message.getThread.queryOptions(info),
+          );
+        } else {
+          await queryClient.invalidateQueries(
+            trpc.message.getMany.queryOptions({
+              channelId: info.channelId,
+              workspaceId: info.workspaceId,
+            }),
+          );
+        }
       },
       onError: (error) => {
         if (error.data?.code === "NOT_FOUND" && error.message === "NF") {
@@ -49,7 +57,7 @@ export const EmojiPopoverButton = (props: EmojiPopoverButtonProps) => {
   );
 
   const handleCreateReaction = async (emoji: string) => {
-    await createReaction.mutateAsync({ ...props, reaction: emoji });
+    await createReaction.mutateAsync({ ...info, reaction: emoji });
   };
 
   return (

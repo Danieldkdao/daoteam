@@ -14,6 +14,7 @@ import { LoadingSwap } from "../ui/loading-swap";
 type SendMessageFieldProps = {
   channelId: string;
   workspaceId: string;
+  messageId?: string;
 };
 
 export const SendMessageField = (props: SendMessageFieldProps) => {
@@ -30,6 +31,14 @@ export const SendMessageField = (props: SendMessageFieldProps) => {
         await queryClient.invalidateQueries(
           trpc.message.getMany.queryOptions(props),
         );
+        if (props.messageId) {
+          await queryClient.invalidateQueries(
+            trpc.message.getThread.queryOptions({
+              ...props,
+              messageId: props.messageId ?? null,
+            }),
+          );
+        }
         editor?.commands.clearContent();
         setMessage("");
       },

@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { TRPCReactProvider } from "@/trpc/client";
 import { ThemeProvider } from "next-themes";
+import { ThreadMessageContextProvider } from "@/hooks/use-thread-message";
 
 const outfitSans = Outfit({
   variable: "--font-outfit-sans",
@@ -34,17 +35,19 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <TRPCReactProvider>
-          <TooltipProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableColorScheme
-              disableTransitionOnChange
-            >
-              <Toaster />
-              {children}
-            </ThemeProvider>
-          </TooltipProvider>
+          <ThreadMessageContextProvider>
+            <TooltipProvider>
+              <ThemeProvider
+                attribute="class"
+                defaultTheme="system"
+                enableColorScheme
+                disableTransitionOnChange
+              >
+                <Toaster />
+                {children}
+              </ThemeProvider>
+            </TooltipProvider>
+          </ThreadMessageContextProvider>
         </TRPCReactProvider>
       </body>
     </html>

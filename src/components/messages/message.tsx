@@ -2,7 +2,11 @@
 
 import { cn } from "@/lib/utils";
 import { GetProcedureOutput } from "@/trpc/types";
-import { MessageSquareTextIcon, PenIcon } from "lucide-react";
+import {
+  MessageSquareIcon,
+  MessageSquareTextIcon,
+  PenIcon,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { MarkdownRenderer } from "../markdown-renderer";
 import { Button } from "../ui/button";
@@ -10,13 +14,21 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { UserAvatar } from "../user-avatar";
 import { EditMessage } from "./edit-message";
 import { EmojiPopoverButton } from "./emoji-popover-button";
+import { useThreadMessage } from "@/hooks/use-thread-message";
+
+type MessageProps = {
+  message: GetProcedureOutput<"message", "getMany">["messages"][number];
+  compact?: boolean;
+  forThread?: boolean;
+};
 
 export const Message = ({
   message,
-}: {
-  message: GetProcedureOutput<"message", "getMany">["messages"][number];
-}) => {
+  compact = false,
+  forThread = false,
+}: MessageProps) => {
   const [isEditing, setIsEditing] = useState(false);
+  const { setCurrentThreadMessage } = useThreadMessage();
   const formattedDate = useMemo(() => {
     const datePart = message.createdAt.toLocaleDateString("en-US", {
       month: "short",
@@ -35,8 +47,9 @@ export const Message = ({
   return (
     <div
       className={cn(
-        "p-4 relative rounded-lg hover:bg-card hover:shadow-sm transition-colors duration-200 flex items-start gap-4",
-        !isEditing && "group",
+        "p-4 relative rounded-lg transition-colors duration-200 flex items-start gap-4",
+        !isEditing && !compact && "group",
+        !compact && "hover:bg-card hover:shadow-sm",
       )}
     >
       <UserAvatar
@@ -50,20 +63,43 @@ export const Message = ({
           <span className="text-lg font-semibold">{message.user.name}</span>
           <span>{formattedDate}</span>
         </div>
-        <div>
-          {isEditing ? (
-            <EditMessage
-              channelId={message.channelId}
-              workspaceId={message.organizationId}
-              messageId={message.id}
-              originalMessage={message.message}
-              setIsEditing={setIsEditing}
-            />
-          ) : (
+
+        {isEditing ? (
+          <EditMessage
+            channelId={message.channelId}
+            workspaceId={message.organizationId}
+            messageId={message.id}
+            originalMessage={message.message}
+            setIsEditing={setIsEditing}
+          />
+        ) : (
+          <div className={cn(compact && "max-h-20 overflow-auto")}>
             <MarkdownRenderer>{message.message}</MarkdownRenderer>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
+          </div>
+        )}
+
+        {message.replyCount > 0 && (
+          <button
+            className="flex items-center gap-2 mb-2 cursor-pointer"
+            onClick={() => setCurrentThreadMessage(message.id)}
+          >
+            <MessageSquareIcon className="size-4 text-muted-foreground" />
+            <span className="text-sm font-medium text-muted-foreground">
+              {message.replyCount} replies
+            </span>
+          </button>
+        )}
+
+        {forThread && (
+          <EmojiPopoverButton
+            channelId={message.channelId}
+            workspaceId={message.organizationId}
+            messageId={message.id}
+            forThread={forThread}
+          />
+        )}
+
+        <div className="flex items-center gap-2 flex-wrap w-full">
           {message.reactions.map((r, index) => (
             <div
               key={`${r.reaction}${index}`}
@@ -75,33 +111,40 @@ export const Message = ({
           ))}
         </div>
       </div>
-      <div className="absolute flex opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto bg-background rounded-md p-2 items-center gap-2 -top-1 -right-1 shadow-sm border transition-opacity duration-200">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon-xs"
-              onClick={() => setIsEditing(true)}
-            >
-              <PenIcon />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Edit message</TooltipContent>
-        </Tooltip>
-        <EmojiPopoverButton
-          channelId={message.channelId}
-          workspaceId={message.organizationId}
-          messageId={message.id}
-        />
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon-xs">
-              <MessageSquareTextIcon />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Reply in thread</TooltipContent>
-        </Tooltip>
-      </div>
+      {!forThread && (
+        <div className="absolute flex opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto bg-background rounded-md p-2 items-center gap-2 -top-1 -right-1 shadow-sm border transition-opacity duration-200">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                onClick={() => setIsEditing(true)}
+              >
+                <PenIcon />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Edit message</TooltipContent>
+          </Tooltip>
+          <EmojiPopoverButton
+            channelId={message.channelId}
+            workspaceId={message.organizationId}
+            messageId={message.id}
+            forThread={false}
+          />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                onClick={() => setCurrentThreadMessage(message.id)}
+              >
+                <MessageSquareTextIcon />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Reply in thread</TooltipContent>
+          </Tooltip>
+        </div>
+      )}
     </div>
   );
 };

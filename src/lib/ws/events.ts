@@ -1,6 +1,7 @@
 export const SOCKET_EVENT = {
   READY: "socket.ready",
   MESSAGE_CREATED_EDITED: "message.created-edited",
+  THREAD_MESSAGE_CREATED: "thread_message_created",
 } as const;
 
 export type SocketReadyEvent = {
@@ -9,7 +10,9 @@ export type SocketReadyEvent = {
 };
 
 export type MessageCreatedEditedEvent = {
-  type: typeof SOCKET_EVENT.MESSAGE_CREATED_EDITED;
+  type:
+    | typeof SOCKET_EVENT.MESSAGE_CREATED_EDITED
+    | typeof SOCKET_EVENT.THREAD_MESSAGE_CREATED;
   channelId: string;
   messageId: string;
 };
@@ -27,7 +30,10 @@ export const isServerSocketEvent = (
     return typeof event.channelId === "string";
   }
 
-  if (event.type === SOCKET_EVENT.MESSAGE_CREATED_EDITED) {
+  if (
+    event.type === SOCKET_EVENT.MESSAGE_CREATED_EDITED ||
+    event.type === SOCKET_EVENT.THREAD_MESSAGE_CREATED
+  ) {
     return (
       typeof event.channelId === "string" && typeof event.messageId === "string"
     );

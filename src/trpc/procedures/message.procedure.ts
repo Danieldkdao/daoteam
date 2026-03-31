@@ -9,7 +9,7 @@ import { SOCKET_EVENT } from "@/lib/ws/events";
 import { broadcastToChannel } from "@/lib/ws/server";
 import { db } from "@/db/db";
 import { MessageTable, user } from "@/db/schema";
-import { and, asc, eq, getTableColumns, sql } from "drizzle-orm";
+import { and, asc, eq, getTableColumns, isNull, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
 export const messageRouter = createTRPCRouter({
@@ -55,6 +55,11 @@ export const messageRouter = createTRPCRouter({
               '[]'::json
             )
           `,
+          replyCount: sql<number>`(
+            SELECT COUNT(*)
+            FROM ${MessageTable} mt
+            WHERE mt.thread_id = ${MessageTable.id}
+          )`,
         })
         .from(MessageTable)
         .innerJoin(user, eq(user.id, MessageTable.userId))
@@ -62,6 +67,7 @@ export const messageRouter = createTRPCRouter({
           and(
             eq(MessageTable.channelId, channel.id),
             eq(MessageTable.organizationId, orgInfo.id),
+            isNull(MessageTable.threadId),
           ),
         )
         .orderBy(asc(MessageTable.createdAt), asc(MessageTable.id));
@@ -77,11 +83,12 @@ export const messageRouter = createTRPCRouter({
         workspaceId: z.string(),
         channelId: z.uuid(),
         message: z.string().min(1),
+        messageId: z.string().optional(),
         image: z.string().nullable().optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const { workspaceId, channelId, message, image } = input;
+      const { workspaceId, channelId, message, messageId, image } = input;
       const { id: userId } = ctx.auth.user;
 
       const existingUser = await checkExistingUserTRPC(userId);
@@ -94,6 +101,28 @@ export const messageRouter = createTRPCRouter({
         workspaceId,
       });
 
+      let parentMessageId;
+
+      if (messageId) {
+        const [existingMessage] = await db
+          .select()
+          .from(MessageTable)
+          .where(
+            and(
+              eq(MessageTable.id, messageId),
+              eq(MessageTable.channelId, channel.id),
+              eq(MessageTable.organizationId, orgInfo.id),
+              isNull(MessageTable.threadId),
+            ),
+          );
+
+        if (!existingMessage) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "NF" });
+        }
+
+        parentMessageId = existingMessage.id;
+      }
+
       const [created] = await db
         .insert(MessageTable)
         .values({
@@ -102,13 +131,16 @@ export const messageRouter = createTRPCRouter({
           userId: existingUser.id,
           channelId: channel.id,
           organizationId: orgInfo.id,
+          threadId: parentMessageId ?? null,
         })
         .returning();
 
       broadcastToChannel(channel.id, {
-        type: SOCKET_EVENT.MESSAGE_CREATED_EDITED,
+        type: SOCKET_EVENT[
+          messageId ? "THREAD_MESSAGE_CREATED" : "MESSAGE_CREATED_EDITED"
+        ],
         channelId: channel.id,
-        messageId: created.id,
+        messageId: parentMessageId ?? created.id,
       });
 
       return created;
@@ -162,5 +194,54 @@ export const messageRouter = createTRPCRouter({
       });
 
       return updatedMessage;
+    }),
+  getThread: protectedProcedure
+    .input(
+      z.object({
+        messageId: z.uuid().nullable(),
+        channelId: z.uuid(),
+        workspaceId: z.string(),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      const { messageId, channelId, workspaceId } = input;
+      const { id: userId } = ctx.auth.user;
+
+      if (!messageId) return null;
+
+      const existingUser = await checkExistingUserTRPC(userId);
+      const { organization: orgInfo } = await checkExistingWorkspaceMemberTRPC({
+        userId: existingUser.id,
+        workspaceId,
+      });
+      const existingChannel = await checkExistingChannelTRPC({
+        channelId,
+        workspaceId: orgInfo.id,
+      });
+
+      const existingMessageThread = await db.query.MessageTable.findFirst({
+        where: and(
+          eq(MessageTable.id, messageId),
+          eq(MessageTable.organizationId, orgInfo.id),
+          eq(MessageTable.channelId, existingChannel.id),
+          isNull(MessageTable.threadId),
+        ),
+        with: {
+          threadMessages: {
+            with: {
+              user: true,
+              reactions: true,
+            },
+            orderBy: [asc(MessageTable.createdAt), asc(MessageTable.id)],
+          },
+          user: true,
+        },
+      });
+
+      if (!existingMessageThread) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "NF" });
+      }
+
+      return existingMessageThread;
     }),
 });

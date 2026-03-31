@@ -82,11 +82,18 @@ const ChannelIdSuspense = ({ workspaceId, channelId }: ChannelIdViewProps) => {
     workspaceId,
   });
   useChannelSocket(channelId, workspaceId, (event) => {
-    if (
-      event.type !== SOCKET_EVENT.MESSAGE_CREATED_EDITED ||
-      event.channelId !== channelId
-    ) {
-      return;
+    if (event.channelId !== channelId) return;
+    if (event.type === SOCKET_EVENT.MESSAGE_CREATED_EDITED) {
+      void queryClient.invalidateQueries(messageQueryOptions);
+    } else if (event.type === SOCKET_EVENT.THREAD_MESSAGE_CREATED) {
+      void queryClient.invalidateQueries(
+        trpc.message.getThread.queryOptions({
+          channelId,
+          workspaceId,
+          messageId: event.messageId,
+        }),
+      );
+      void queryClient.invalidateQueries(messageQueryOptions);
     }
 
     void queryClient.invalidateQueries(messageQueryOptions);
@@ -104,7 +111,7 @@ const ChannelIdSuspense = ({ workspaceId, channelId }: ChannelIdViewProps) => {
           <SendMessageField channelId={channelId} workspaceId={workspaceId} />
         </div>
       </div>
-      <ThreadSidebar />
+      <ThreadSidebar channelId={channelId} workspaceId={workspaceId} />
     </div>
   );
 };
