@@ -19,21 +19,20 @@ export const WorkspaceIdView = (props: WorkspaceIdProps) => {
 
 const WorkspaceIdLoading = () => {
   return (
-    <div className="w-full h-full flex items-center justify-center p-8">
-      <div className="w-full max-w-5xl space-y-8 rounded-3xl border bg-card p-8">
-        <div className="space-y-3">
-          <Skeleton className="h-6 w-28 rounded-full" />
-          <Skeleton className="h-12 w-1/3 rounded-2xl" />
+    <div className="flex h-full w-full items-center justify-center p-6">
+      <div className="flex w-full max-w-100 flex-col items-center gap-4 rounded-lg border-2 border-dashed bg-card p-10">
+        <div className="rounded-full bg-primary/10 p-3">
+          <Skeleton className="size-10 rounded-full" />
         </div>
-        <div className="grid gap-4 lg:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, index) => (
-            <Skeleton key={index} className="h-40 rounded-2xl" />
-          ))}
+        <div className="flex w-full flex-col items-center gap-3">
+          <Skeleton className="h-8 w-52 rounded-lg" />
+          <Skeleton className="h-4 w-72 max-w-full rounded-md" />
+          <Skeleton className="h-4 w-80 max-w-full rounded-md" />
+          <Skeleton className="h-4 w-64 max-w-full rounded-md" />
         </div>
-        <div className="space-y-4">
-          {Array.from({ length: 3 }).map((_, index) => (
-            <Skeleton key={index} className="h-24 rounded-2xl" />
-          ))}
+        <div className="mt-2 flex w-full justify-center gap-3">
+          <Skeleton className="h-10 w-28 rounded-md" />
+          <Skeleton className="h-10 w-32 rounded-md" />
         </div>
       </div>
     </div>
@@ -54,7 +53,7 @@ const WorkspaceIdSuspense = async ({ params }: WorkspaceIdProps) => {
             Workspace Not Found
           </h1>
           <p className="text-sm font-medium text-destructive/80">
-            We couldn't find the workspace that you were looking for. Try
+            We couldn&apos;t find the workspace that you were looking for. Try
             refreshing or choosing another workspace.
           </p>
         </div>
@@ -74,7 +73,7 @@ const WorkspaceIdSuspense = async ({ params }: WorkspaceIdProps) => {
           </h1>
           <p className="text-sm font-medium text-muted-foreground w-full max-w-100 text-center">
             Begin or resume your conversations by selecting a channel from the
-            list on the left. If you don't see any, you can create a new one to
+            list on the left. If you don&apos;t see any, you can create a new one to
             get started.
           </p>
         </div>

@@ -7,7 +7,10 @@ import { TRPCError } from "@trpc/server";
 import z from "zod";
 import { protectedProcedure, createTRPCRouter } from "../init";
 import { generateSlug } from "@/lib/utils";
-import { checkExistingUser, checkExistingWorkspaceMember } from "../helpers";
+import {
+  checkExistingUserTRPC,
+  checkExistingWorkspaceMemberTRPC,
+} from "../helpers";
 
 export const workspaceRouter = createTRPCRouter({
   create: protectedProcedure
@@ -94,8 +97,8 @@ export const workspaceRouter = createTRPCRouter({
 
       if (!input.workspaceId) return null;
 
-      await checkExistingUser(userId);
-      const { organization: orgInfo } = await checkExistingWorkspaceMember({
+      await checkExistingUserTRPC(userId);
+      const { organization: orgInfo } = await checkExistingWorkspaceMemberTRPC({
         userId,
         workspaceId: input.workspaceId,
       });
@@ -118,8 +121,8 @@ export const workspaceRouter = createTRPCRouter({
 
       if (!input.workspaceId) return { currentUserMember: null, members: [] };
 
-      const existingUser = await checkExistingUser(userId);
-      const memberOrgInfo = await checkExistingWorkspaceMember({
+      const existingUser = await checkExistingUserTRPC(userId);
+      const memberOrgInfo = await checkExistingWorkspaceMemberTRPC({
         userId,
         workspaceId: input.workspaceId,
       });

@@ -6,7 +6,10 @@ import { and, desc, eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import z from "zod";
 import { protectedProcedure, createTRPCRouter } from "../init";
-import { checkExistingUser, checkExistingWorkspaceMember } from "../helpers";
+import {
+  checkExistingUserTRPC,
+  checkExistingWorkspaceMemberTRPC,
+} from "../helpers";
 
 export const channelRouter = createTRPCRouter({
   create: protectedProcedure
@@ -76,8 +79,8 @@ export const channelRouter = createTRPCRouter({
 
       if (!input.workspaceId) return [];
 
-      await checkExistingUser(userId);
-      const { organization } = await checkExistingWorkspaceMember({
+      await checkExistingUserTRPC(userId);
+      const { organization } = await checkExistingWorkspaceMemberTRPC({
         userId,
         workspaceId: input.workspaceId,
       });
@@ -104,8 +107,8 @@ export const channelRouter = createTRPCRouter({
 
       if (!workspaceId || !channelId) return null;
 
-      await checkExistingUser(userId);
-      const memberOrgData = await checkExistingWorkspaceMember({
+      await checkExistingUserTRPC(userId);
+      const memberOrgData = await checkExistingWorkspaceMemberTRPC({
         userId,
         workspaceId,
       });

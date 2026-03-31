@@ -1,14 +1,27 @@
+"use client";
+
 import { GetProcedureOutput } from "@/trpc/types";
 import { BanIcon } from "lucide-react";
 import { Message } from "./message";
+import { useEffect, useRef } from "react";
 
 export const MessagesList = ({
   messages,
 }: {
   messages: GetProcedureOutput<"message", "getMany">["messages"];
 }) => {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (el) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+  }, [messages]);
+
   return (
-    <div className="flex-1 h-full w-full overflow-auto min-h-0 max-h-full p-5 space-y-2">
+    <div
+      ref={scrollContainerRef}
+      className="flex-1 h-full w-full overflow-auto min-h-0 max-h-full p-5 space-y-2"
+    >
       {messages.length ? (
         messages.map((m) => <Message key={m.id} message={m} />)
       ) : (

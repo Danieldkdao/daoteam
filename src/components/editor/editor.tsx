@@ -21,26 +21,23 @@ import { Button } from "../ui/button";
 import { useState } from "react";
 import { toast } from "sonner";
 import { LoadingSwap } from "../ui/loading-swap";
+import { useTRPC } from "@/trpc/client";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 type TextEditorProps = {
   channelId: string;
   workspaceId: string;
 };
 
+type MarkdownStorage = {
+  markdown: {
+    getMarkdown: () => string;
+  };
+};
+
 export const TextEditor = (props: TextEditorProps) => {
-  // const sendMessage = useMutation(
-  //   trpc.message.create.mutationOptions({
-  //     onSuccess: () => {
-  //       queryClient.invalidateQueries(trpc.message.getMany.queryOptions(props));
-  //       setMessage("");
-  //     },
-  //     onError: () => {
-  //       toast.error(
-  //         "Something went wrong. Please try again or come back later.",
-  //       );
-  //     },
-  //   }),
-  // );
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
   const [message, setMessage] = useState("");
   const editor = useEditor({
     extensions: [
@@ -53,7 +50,8 @@ export const TextEditor = (props: TextEditorProps) => {
     ],
     content: message,
     onUpdate({ editor }) {
-      setMessage((editor.storage as any).markdown.getMarkdown());
+      const storage = editor.storage as unknown as MarkdownStorage;
+      setMessage(storage.markdown.getMarkdown());
     },
     autofocus: "end",
     editable: true,
@@ -68,15 +66,35 @@ export const TextEditor = (props: TextEditorProps) => {
     shouldRerenderOnTransaction: true,
   });
 
+  const sendMessage = useMutation(
+    trpc.message.create.mutationOptions({
+      onSuccess: async () => {
+        await queryClient.invalidateQueries(
+          trpc.message.getMany.queryOptions(props),
+        );
+        editor?.commands.clearContent();
+        setMessage("");
+      },
+      onError: (error) => {
+        toast.error(error.message);
+      },
+    }),
+  );
+
   if (!editor) {
     return null;
   }
 
-  // const handleSendMessage = async () => {
-  //   if (!message.trim())
-  //     return toast.error("Please enter a message before sending.");
-  //   await sendMessage.mutateAsync({ ...props, message });
-  // };
+  const handleSendMessage = async () => {
+    const trimmedMessage = message.trim();
+
+    if (!trimmedMessage) {
+      toast.error("Please enter a message before sending.");
+      return;
+    }
+
+    await sendMessage.mutateAsync({ ...props, message: trimmedMessage });
+  };
 
   return (
     <div className="w-full rounded-lg border bg-sidebar shadow-xs">
@@ -153,7 +171,7 @@ export const TextEditor = (props: TextEditorProps) => {
 
         <Button
           className="rounded-full bg-linear-90 from-purple-700 to-fuchsia-600 text-white border-none px-4"
-          // disabled={!message.trim() || sendMessage.isPending}
+          disabled={!message.trim() || sendMessage.isPending}
         >
           <SparklesIcon className="text-white" />
           Compose
@@ -163,23 +181,21 @@ export const TextEditor = (props: TextEditorProps) => {
       <div className="flex items-center justify-between gap-2 px-3 py-3">
         <Button
           variant="outline"
-          // disabled={sendMessage.isPending}
+          disabled={sendMessage.isPending}
         >
           <ImageIcon />
           Attach Image
         </Button>
         <Button
-        // disabled={!message.trim() || sendMessage.isPending}
-        // onClick={handleSendMessage}
+          disabled={!message.trim() || sendMessage.isPending}
+          onClick={handleSendMessage}
         >
-          {/* <LoadingSwap 
-          // isLoading={sendMessage.isPending}
-          >
+          <LoadingSwap isLoading={sendMessage.isPending}>
             <div className="flex items-center gap-2">
               <SendIcon />
               Send Message
             </div>
-          </LoadingSwap> */}
+          </LoadingSwap>
         </Button>
       </div>
     </div>

@@ -5,9 +5,12 @@ import { Skeleton } from "../ui/skeleton";
 import { MessageHeader } from "../messages/message-header";
 import { TextEditor } from "../editor/editor";
 import { useTRPC } from "@/trpc/client";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { ErrorBoundary } from "react-error-boundary";
 import { MessagesList } from "../messages/messages-list";
+import { useChannelSocket } from "@/hooks/use-channel-socket";
+import { SOCKET_EVENT } from "@/lib/ws/events";
+import { MessageSkeleton } from "../messages/message-skeleton";
 
 type ChannelIdViewProps = {
   workspaceId: string;
@@ -26,20 +29,40 @@ export const ChannelIdView = (props: ChannelIdViewProps) => {
 
 const ChannelIdLoading = () => {
   return (
-    <div className="w-full h-full flex items-center justify-center p-8">
-      <div className="w-full max-w-5xl space-y-8 rounded-3xl border bg-card p-8">
-        <div className="space-y-3">
-          <Skeleton className="h-6 w-32 rounded-full" />
-          <Skeleton className="h-12 w-2/5 rounded-2xl" />
+    <div className="flex h-full flex-col">
+      <div className="flex h-16 items-center gap-4 border-b px-5">
+        <Skeleton className="h-8 w-40 rounded-lg" />
+        <div className="ml-auto flex items-center gap-2">
+          <Skeleton className="h-10 w-32 rounded-md" />
+          <Skeleton className="h-10 w-24 rounded-md" />
+          <Skeleton className="size-10 rounded-md" />
         </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          <Skeleton className="h-36 rounded-2xl" />
-          <Skeleton className="h-36 rounded-2xl" />
-        </div>
-        <div className="space-y-3">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <Skeleton key={index} className="h-20 rounded-2xl" />
-          ))}
+      </div>
+      <div className="flex-1 space-y-2 overflow-hidden p-5">
+        <MessageSkeleton />
+        <MessageSkeleton lines={3} />
+        <MessageSkeleton align="end" />
+        <MessageSkeleton lines={4} />
+        <MessageSkeleton />
+      </div>
+      <div className="border-t p-4">
+        <div className="w-full rounded-lg border bg-sidebar shadow-xs">
+          <div className="flex flex-wrap items-center gap-3 border-b px-3 py-3">
+            {Array.from({ length: 8 }).map((_, index) => (
+              <Skeleton key={index} className="size-8 rounded-md" />
+            ))}
+            <Skeleton className="ml-2 h-9 w-28 rounded-full" />
+          </div>
+          <div className="space-y-3 px-4 py-4">
+            <Skeleton className="h-4 w-11/12" />
+            <Skeleton className="h-4 w-4/5" />
+            <Skeleton className="h-4 w-2/3" />
+            <Skeleton className="h-16 w-full rounded-xl" />
+          </div>
+          <div className="flex items-center justify-between gap-2 px-3 py-3">
+            <Skeleton className="h-10 w-32 rounded-md" />
+            <Skeleton className="h-10 w-36 rounded-md" />
+          </div>
         </div>
       </div>
     </div>
@@ -52,12 +75,22 @@ const ChannelIdError = () => {
 
 const ChannelIdSuspense = ({ workspaceId, channelId }: ChannelIdViewProps) => {
   const trpc = useTRPC();
-  const { data } = useSuspenseQuery(
-    trpc.message.getMany.queryOptions({
-      channelId,
-      workspaceId,
-    }),
-  );
+  const queryClient = useQueryClient();
+  const messageQueryOptions = trpc.message.getMany.queryOptions({
+    channelId,
+    workspaceId,
+  });
+  useChannelSocket(channelId, workspaceId, (event) => {
+    if (
+      event.type !== SOCKET_EVENT.MESSAGE_CREATED ||
+      event.channelId !== channelId
+    ) {
+      return;
+    }
+
+    void queryClient.invalidateQueries(messageQueryOptions);
+  });
+  const { data } = useSuspenseQuery(messageQueryOptions);
   const channel = data.channel;
   const messages = data.messages;
 
