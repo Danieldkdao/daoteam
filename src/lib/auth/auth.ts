@@ -3,6 +3,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "@/db/db";
 import { emailOTP, organization } from "better-auth/plugins";
 import { sendVerificationOtp } from "../emails/verification-email";
+import { sendOrganizationInvitation } from "../emails/organization-invitation";
 import { envServer } from "@/data/env/server";
 import Stripe from "stripe";
 import { stripe } from "@better-auth/stripe";
@@ -55,7 +56,19 @@ export const auth = betterAuth({
         await sendVerificationOtp(data);
       },
     }),
-    organization(),
+    organization({
+      async sendInvitationEmail(data) {
+        const inviteUrl = `${envServer.BETTER_AUTH_URL}/accept-invitation?id=${data.id}`;
+
+        await sendOrganizationInvitation({
+          email: data.email,
+          invitedByUsername: data.inviter.user.name,
+          invitedByEmail: data.inviter.user.email,
+          teamName: data.organization.name,
+          inviteUrl,
+        });
+      },
+    }),
     stripe({
       stripeClient,
       stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET!,

@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { InviteMemberButton } from "@/components/members/invite-member-button";
 import {
   Collapsible,
   CollapsibleContent,
@@ -11,7 +11,7 @@ import { UserAvatar } from "@/components/user-avatar";
 import { cn } from "@/lib/utils";
 import { useTRPC } from "@/trpc/client";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDownIcon, UsersIcon } from "lucide-react";
+import { ChevronDownIcon } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 
@@ -81,17 +81,17 @@ export const MembersListView = () => {
                   </div>
                 ))
               ) : currentUserMember?.role === "owner" ||
-                currentUserMember?.role === "admin" ? (
+                (currentUserMember?.role === "admin" && workspaceId) ? (
                 <div className="w-full p-5 rounded-lg border-2 border-dashed bg-card">
                   <h1 className="text-lg font-bold">No Members Yet</h1>
                   <p className="text-sm font-medium text-muted-foreground">
                     Invite your teammates to get started.
                   </p>
-                  {/* todo: implement invite members functionality */}
-                  <Button className="w-full mt-4">
-                    <UsersIcon />
-                    Invite Members
-                  </Button>
+                  <InviteMemberButton
+                    variant="default"
+                    className="w-full mt-4"
+                    workspaceId={workspaceId ?? ""}
+                  />
                 </div>
               ) : (
                 <span className="text-sm font-medium text-muted-foreground">
