@@ -16,7 +16,7 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 
 export const MembersListView = () => {
-  const { workspaceId }: { workspaceId: string | undefined } = useParams();
+  const { workspaceId } = useParams() as { workspaceId: string | undefined };
   const trpc = useTRPC();
   const {
     data: memberData,
@@ -34,8 +34,8 @@ export const MembersListView = () => {
   return (
     <div
       className={cn(
-        "border-t flex h-70 flex-col overflow-hidden p-5 transition-[height] duration-200",
-        open && "h-90",
+        "border-t flex h-18 flex-col overflow-hidden p-5 transition-[height] duration-200",
+        open && "flex-1 max-h-90",
       )}
     >
       <Collapsible

@@ -4,12 +4,13 @@ import { getEditorConfig } from "@/lib/utils";
 import { useTRPC } from "@/trpc/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEditor } from "@tiptap/react";
-import { ImageIcon, SendIcon } from "lucide-react";
-import { useState } from "react";
+import { SendIcon } from "lucide-react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { TextEditor } from "../editor/editor";
 import { Button } from "../ui/button";
 import { LoadingSwap } from "../ui/loading-swap";
+import { AttachImageButton } from "./attach-image-button";
 
 type SendMessageFieldProps = {
   channelId: string;
@@ -21,7 +22,11 @@ export const SendMessageField = (props: SendMessageFieldProps) => {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const [message, setMessage] = useState("");
+  const [image, setImage] = useState<string | null | undefined>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const editor = useEditor(getEditorConfig({ message, setMessage }));
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const trimmedMessage = message.trim();
 
@@ -40,6 +45,11 @@ export const SendMessageField = (props: SendMessageFieldProps) => {
           );
         }
         editor?.commands.clearContent();
+        setImage(null);
+        setImagePreview(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
         setMessage("");
       },
       onError: (error) => {
@@ -54,17 +64,21 @@ export const SendMessageField = (props: SendMessageFieldProps) => {
       return;
     }
 
-    await sendMessage.mutateAsync({ ...props, message: trimmedMessage });
+    await sendMessage.mutateAsync({ ...props, message: trimmedMessage, image });
   };
 
   return (
     <div className="w-full rounded-lg border bg-sidebar shadow-xs">
       <TextEditor editor={editor} />
       <div className="flex items-center justify-between gap-2 px-3 py-3">
-        <Button variant="outline" disabled={sendMessage.isPending}>
-          <ImageIcon />
-          Attach Image
-        </Button>
+        <AttachImageButton
+          disabled={sendMessage.isPending}
+          image={image}
+          setImage={setImage}
+          imagePreview={imagePreview}
+          setImagePreview={setImagePreview}
+          fileInputRef={fileInputRef}
+        />
         <Button
           disabled={!trimmedMessage || sendMessage.isPending}
           onClick={handleSendMessage}

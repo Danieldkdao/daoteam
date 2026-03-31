@@ -15,6 +15,7 @@ import { UserAvatar } from "../user-avatar";
 import { EditMessage } from "./edit-message";
 import { EmojiPopoverButton } from "./emoji-popover-button";
 import { useThreadMessage } from "@/hooks/use-thread-message";
+import Image from "next/image";
 
 type MessageProps = {
   message: GetProcedureOutput<"message", "getMany">["messages"][number];
@@ -58,7 +59,12 @@ export const Message = ({
         className="size-12"
         textClassName="text-xl font-medium"
       />
-      <div className="flex flex-col gap-1 w-full">
+      <div
+        className={cn(
+          "flex min-w-0 flex-1 flex-col gap-1",
+          compact && "max-h-20 overflow-auto",
+        )}
+      >
         <div className="flex items-center gap-2">
           <span className="text-lg font-semibold">{message.user.name}</span>
           <span>{formattedDate}</span>
@@ -73,8 +79,22 @@ export const Message = ({
             setIsEditing={setIsEditing}
           />
         ) : (
-          <div className={cn(compact && "max-h-20 overflow-auto")}>
+          <div>
             <MarkdownRenderer>{message.message}</MarkdownRenderer>
+          </div>
+        )}
+
+        {message.image && (
+          <div className="p-1 border rounded-md bg-background w-fit mb-1">
+            <div className="relative h-fit w-fit max-w-full self-start bg-red-400 rounded-md overflow-hidden">
+              <Image
+                src={message.image}
+                alt="Message image"
+                width={320}
+                height={160}
+                className="h-full w-auto max-w-full object-contain object-top-left"
+              />
+            </div>
           </div>
         )}
 

@@ -16,6 +16,7 @@ export const MessageTable = pgTable(
     id: uuid().primaryKey().defaultRandom(),
     message: varchar("message").notNull(),
     image: varchar("image"),
+    publicId: varchar("public_id"),
     userId: varchar("user_id")
       .references(() => user.id, { onDelete: "cascade" })
       .notNull(),

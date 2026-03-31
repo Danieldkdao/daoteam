@@ -18,7 +18,7 @@ type ToolbarEditorProps = {
   showAICompose?: boolean;
 };
 
-export const ToolbarHeader = ({
+export const Toolbar = ({
   editor,
   showAICompose = true,
 }: ToolbarEditorProps) => {

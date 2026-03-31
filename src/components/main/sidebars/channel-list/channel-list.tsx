@@ -1,5 +1,6 @@
 "use client";
 
+import { CreateChannelButton } from "@/components/channel/create-channel-button";
 import { Button } from "@/components/ui/button";
 import {
   Collapsible,
@@ -22,61 +23,72 @@ export const ChannelList = ({
   const { channelId } = useParams() as { channelId: string | undefined };
 
   return (
-    <Collapsible
-      open={open}
-      onOpenChange={setOpen}
-      className="flex-1 flex flex-col min-h-0"
+    <div
+      className={cn(
+        "flex min-h-0 flex-col space-y-4 overflow-hidden p-5 transition-[flex-grow] duration-300 ease-out",
+        open && "flex-1",
+      )}
     >
-      <CollapsibleTrigger className="w-full shrink-0">
-        <div className="flex items-center gap-2 justify-between">
-          <span className="text-muted-foreground">Main</span>
-          <ChevronDownIcon
-            className={cn(
-              "text-muted-foreground size-4 transition-discrete duration-200",
-              !open && "rotate-180",
-            )}
-          />
-        </div>
-      </CollapsibleTrigger>
-      <CollapsibleContent className="py-4 overflow-y-auto min-h-0 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-top-1 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-1">
-        <div className="space-y-1">
-          {channels.length ? (
-            channels.map((c) => {
-              const isActive = c.id === channelId;
+      <CreateChannelButton />
+      <Collapsible
+        open={open}
+        onOpenChange={setOpen}
+        className={cn(
+          "flex min-h-0 flex-col overflow-hidden rounded-lg transition-[flex-grow] duration-300 ease-out",
+          open && "flex-1",
+        )}
+      >
+        <CollapsibleTrigger className="w-full shrink-0">
+          <div className="flex items-center gap-2 justify-between">
+            <span className="text-muted-foreground">Main</span>
+            <ChevronDownIcon
+              className={cn(
+                "text-muted-foreground size-4 transition-transform duration-300 ease-out",
+                !open && "rotate-180",
+              )}
+            />
+          </div>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="min-h-0 overflow-hidden transition-[flex-grow] duration-300 ease-out data-[state=open]:flex-1 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-top-1 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-1">
+          <div className="h-full min-h-0 space-y-1 overflow-y-auto py-4">
+            {channels.length ? (
+              channels.map((c) => {
+                const isActive = c.id === channelId;
 
-              return (
-                <Link
-                  key={c.id}
-                  href={`/workspace/${c.organizationId}/channel/${c.id}`}
-                  className="w-full"
-                >
-                  <Button
-                    variant="ghost"
-                    className={cn(
-                      "w-full",
-                      isActive &&
-                        "bg-primary/30 hover:bg-primary/35 transition-colors duration-200",
-                    )}
+                return (
+                  <Link
+                    key={c.id}
+                    href={`/workspace/${c.organizationId}/channel/${c.id}`}
+                    className="w-full"
                   >
-                    <div className="flex items-center gap-2 w-full justify-start">
-                      <span className="text-lg font-medium text-muted-foreground">
-                        #
-                      </span>
-                      <span className="text-lg font-medium text-muted-foreground truncate">
-                        {c.slug}
-                      </span>
-                    </div>
-                  </Button>
-                </Link>
-              );
-            })
-          ) : (
-            <span className="text-sm font-medium text-muted-foreground">
-              No channels yet. Create one to start.
-            </span>
-          )}
-        </div>
-      </CollapsibleContent>
-    </Collapsible>
+                    <Button
+                      variant="ghost"
+                      className={cn(
+                        "w-full",
+                        isActive &&
+                          "bg-primary/30 hover:bg-primary/35 transition-colors duration-200",
+                      )}
+                    >
+                      <div className="flex items-center gap-2 w-full justify-start">
+                        <span className="text-lg font-medium text-muted-foreground">
+                          #
+                        </span>
+                        <span className="text-lg font-medium text-muted-foreground truncate">
+                          {c.slug}
+                        </span>
+                      </div>
+                    </Button>
+                  </Link>
+                );
+              })
+            ) : (
+              <span className="text-sm font-medium text-muted-foreground">
+                No channels yet. Create one to start.
+              </span>
+            )}
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+    </div>
   );
 };

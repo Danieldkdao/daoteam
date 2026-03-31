@@ -1,6 +1,5 @@
 "use client";
 
-import { CreateChannelButton } from "@/components/channel/create-channel-button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTRPC } from "@/trpc/client";
 import { useQuery } from "@tanstack/react-query";
@@ -8,7 +7,7 @@ import { useParams } from "next/navigation";
 import { ChannelList } from "./channel-list";
 
 export const ChannelListView = () => {
-  const { workspaceId }: { workspaceId: string | undefined } = useParams();
+  const { workspaceId } = useParams() as { workspaceId: string | undefined };
   const trpc = useTRPC();
   const {
     data: channels,
@@ -19,26 +18,28 @@ export const ChannelListView = () => {
   if (isPending) return <ChannelListLoading />;
   if (isError) return <ChannelListError />;
 
-  return (
-    <div className="p-5 space-y-4 flex-1 flex flex-col min-h-0">
-      <CreateChannelButton />
-      <ChannelList channels={channels ?? []} />
-    </div>
-  );
+  return <ChannelList channels={channels ?? []} />;
 };
 
 export const ChannelListLoading = () => {
   return (
-    <div className="p-5 space-y-4 flex-1 flex flex-col min-h-0">
-      <Skeleton className="h-10 w-full rounded-lg" />
-      <div className="space-y-2 overflow-hidden">
-        {Array.from({ length: 6 }).map((_, index) => (
-          <div
-            key={index}
-            className="flex items-center gap-2 rounded-lg px-3 py-2"
-          >
-            <Skeleton className="size-5 rounded-md" />
-            <Skeleton className="h-5 flex-1 rounded-md" />
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-5">
+      <div className="flex items-center justify-between">
+        <Skeleton className="h-5 w-16 rounded-full" />
+        <Skeleton className="size-4 rounded-full" />
+      </div>
+      <div className="mt-4 space-y-1 overflow-hidden">
+        {Array.from({ length: 7 }).map((_, index) => (
+          <div key={index} className="rounded-md px-2 py-1.5">
+            <div className="flex items-center gap-2.5">
+              <Skeleton className="h-5 w-4 rounded-sm" />
+              <Skeleton
+                className="h-5 rounded-md"
+                style={{
+                  width: `${Math.max(40, 82 - index * 7)}%`,
+                }}
+              />
+            </div>
           </div>
         ))}
       </div>

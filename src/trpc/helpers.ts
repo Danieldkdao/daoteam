@@ -3,6 +3,7 @@ import {
   checkExistingUser,
   checkExistingWorkspaceMember,
 } from "@/lib/checks";
+import { cloudinary } from "@/lib/cloudinary/cloudinary";
 import { TRPCError } from "@trpc/server";
 
 export const checkExistingUserTRPC = async (userId: string) => {
@@ -43,4 +44,30 @@ export const checkExistingChannelTRPC = async (props: {
   }
 
   return response.channel;
+};
+
+export const handleImageUpload = async (image: string | null | undefined) => {
+  let imageData: { imageUrl: string | null; publicId: string | null } = {
+    imageUrl: null,
+    publicId: null,
+  };
+  if (!image) return imageData;
+  try {
+    const result = await cloudinary.uploader.upload(image, {
+      folder: "daoteam",
+      resource_type: "image",
+      transformation: [{ quality: "auto" }, { fetch_format: "auto" }],
+    });
+    if (result?.secure_url && result.public_id) {
+      imageData = {
+        imageUrl: result.secure_url,
+        publicId: result.public_id,
+      };
+    }
+
+    return imageData;
+  } catch (error) {
+    console.error(error);
+    return imageData;
+  }
 };

@@ -4,6 +4,7 @@ import {
   checkExistingChannelTRPC,
   checkExistingUserTRPC,
   checkExistingWorkspaceMemberTRPC,
+  handleImageUpload,
 } from "../helpers";
 import { SOCKET_EVENT } from "@/lib/ws/events";
 import { broadcastToChannel } from "@/lib/ws/server";
@@ -123,11 +124,14 @@ export const messageRouter = createTRPCRouter({
         parentMessageId = existingMessage.id;
       }
 
+      const imageData = await handleImageUpload(image);
+
       const [created] = await db
         .insert(MessageTable)
         .values({
           message,
-          image: image ?? null,
+          image: imageData.imageUrl,
+          publicId: imageData.publicId,
           userId: existingUser.id,
           channelId: channel.id,
           organizationId: orgInfo.id,
