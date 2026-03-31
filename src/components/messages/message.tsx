@@ -1,14 +1,15 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import { GetProcedureOutput } from "@/trpc/types";
-import { UserAvatar } from "../user-avatar";
+import { MessageSquareTextIcon, PenIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { MarkdownRenderer } from "../markdown-renderer";
 import { Button } from "../ui/button";
-import { MessageSquareTextIcon, PenIcon, SmilePlusIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import { UserAvatar } from "../user-avatar";
 import { EditMessage } from "./edit-message";
-import { cn } from "@/lib/utils";
+import { EmojiPopoverButton } from "./emoji-popover-button";
 
 export const Message = ({
   message,
@@ -62,9 +63,19 @@ export const Message = ({
             <MarkdownRenderer>{message.message}</MarkdownRenderer>
           )}
         </div>
+        <div className="flex items-center gap-2">
+          {message.reactions.map((r, index) => (
+            <div
+              key={`${r.reaction}${index}`}
+              className="flex items-center gap-2 rounded-full py-1 px-2.5 bg-primary/50"
+            >
+              <span>{r.reaction}</span>
+              <span className="text-sm font-semibold">{r.count}</span>
+            </div>
+          ))}
+        </div>
       </div>
-      <div className="absolute hidden group-hover:flex bg-background rounded-md p-2 items-center gap-2 -top-1 -right-1 shadow-sm border">
-        {/* todo: investigate odd behavior where after cursor just leaves trigger, then the tooltip content appears in the top left of the entire screen briefly */}
+      <div className="absolute flex opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto bg-background rounded-md p-2 items-center gap-2 -top-1 -right-1 shadow-sm border transition-opacity duration-200">
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -77,14 +88,11 @@ export const Message = ({
           </TooltipTrigger>
           <TooltipContent>Edit message</TooltipContent>
         </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon-xs">
-              <SmilePlusIcon />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Add reaction</TooltipContent>
-        </Tooltip>
+        <EmojiPopoverButton
+          channelId={message.channelId}
+          workspaceId={message.organizationId}
+          messageId={message.id}
+        />
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon-xs">

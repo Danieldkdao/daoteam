@@ -9,7 +9,7 @@ import { SOCKET_EVENT } from "@/lib/ws/events";
 import { broadcastToChannel } from "@/lib/ws/server";
 import { db } from "@/db/db";
 import { MessageTable, user } from "@/db/schema";
-import { and, asc, eq, getTableColumns } from "drizzle-orm";
+import { and, asc, eq, getTableColumns, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
 export const messageRouter = createTRPCRouter({
@@ -38,6 +38,23 @@ export const messageRouter = createTRPCRouter({
         .select({
           ...getTableColumns(MessageTable),
           user: getTableColumns(user),
+          reactions: sql<{ reaction: string; count: number }[]>`
+            COALESCE(
+              (
+                SELECT json_agg(json_build_object('reaction', t.reaction, 'count', t.count))
+                FROM (
+                  SELECT
+                    "reactions"."reaction" AS reaction,
+                    COUNT(*)::int AS count
+                  FROM "reactions"
+                  WHERE "reactions"."message_id" = ${MessageTable.id}
+                  GROUP BY "reactions"."reaction"
+                  ORDER BY "reactions"."reaction"
+                ) t
+              ),
+              '[]'::json
+            )
+          `,
         })
         .from(MessageTable)
         .innerJoin(user, eq(user.id, MessageTable.userId))

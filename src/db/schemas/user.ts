@@ -11,6 +11,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { ChannelTable } from "./channel";
 import { MessageTable } from "./message";
+import { ReactionTable } from "./reaction";
 
 export const onboardingPhases = [
   "create-organization",
@@ -187,6 +188,7 @@ export const userRelations = relations(user, ({ many }) => ({
   invitations: many(invitation),
   channels: many(ChannelTable),
   messages: many(MessageTable),
+  many: many(ReactionTable),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({

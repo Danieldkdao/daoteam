@@ -2,6 +2,7 @@ import { pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { organization, user } from "./user";
 import { ChannelTable } from "./channel";
 import { relations } from "drizzle-orm";
+import { ReactionTable } from "./reaction";
 
 export const MessageTable = pgTable("messages", {
   id: uuid().primaryKey().defaultRandom(),
@@ -25,7 +26,7 @@ export const MessageTable = pgTable("messages", {
     .$onUpdate(() => new Date()),
 });
 
-export const messageRelations = relations(MessageTable, ({ one }) => ({
+export const messageRelations = relations(MessageTable, ({ one, many }) => ({
   user: one(user, {
     fields: [MessageTable.userId],
     references: [user.id],
@@ -38,4 +39,5 @@ export const messageRelations = relations(MessageTable, ({ one }) => ({
     fields: [MessageTable.organizationId],
     references: [organization.id],
   }),
+  reactions: many(ReactionTable),
 }));

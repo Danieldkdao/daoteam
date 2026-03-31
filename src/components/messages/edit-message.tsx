@@ -1,16 +1,15 @@
 "use client";
 
-import { useEditor } from "@tiptap/react";
-import { TextEditor } from "../editor/editor";
-import { useState } from "react";
+import { SetterType } from "@/lib/types";
 import { getEditorConfig } from "@/lib/utils";
-import { Button } from "../ui/button";
 import { useTRPC } from "@/trpc/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEditor } from "@tiptap/react";
+import { useState } from "react";
 import { toast } from "sonner";
-import { SetterType } from "@/lib/types";
+import { TextEditor } from "../editor/editor";
+import { Button } from "../ui/button";
 import { LoadingSwap } from "../ui/loading-swap";
-import { CircleXIcon, SendIcon } from "lucide-react";
 
 type EditMessageProps = {
   channelId: string;
@@ -73,22 +72,14 @@ export const EditMessage = ({
             onClick={() => setIsEditing(false)}
             variant="outline"
           >
-            <LoadingSwap isLoading={editMessage.isPending}>
-              <div className="flex items-center gap-2">
-                <CircleXIcon />
-                Cancel
-              </div>
-            </LoadingSwap>
+            <LoadingSwap isLoading={editMessage.isPending}>Cancel</LoadingSwap>
           </Button>
           <Button
             disabled={!trimmedMessage || editMessage.isPending}
             onClick={handleEditMessage}
           >
             <LoadingSwap isLoading={editMessage.isPending}>
-              <div className="flex items-center gap-2">
-                <SendIcon />
-                Save changes
-              </div>
+              Save changes
             </LoadingSwap>
           </Button>
         </div>
