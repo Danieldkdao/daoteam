@@ -11,6 +11,7 @@ import { MessageSkeleton } from "../messages/message-skeleton";
 import { MessagesList } from "../messages/messages-list";
 import { SendMessageField } from "../messages/send-message";
 import { Skeleton } from "../ui/skeleton";
+import { ThreadSidebar } from "../messages/thread-sidebar";
 
 type ChannelIdViewProps = {
   workspaceId: string;
@@ -95,12 +96,15 @@ const ChannelIdSuspense = ({ workspaceId, channelId }: ChannelIdViewProps) => {
   const messages = data.messages;
 
   return (
-    <div className="flex flex-col h-full">
-      <MessageHeader channelSlug={channel.slug} />
-      <MessagesList messages={messages} />
-      <div className="p-4 border-t">
-        <SendMessageField channelId={channelId} workspaceId={workspaceId} />
+    <div className="h-full flex">
+      <div className="flex flex-col h-full flex-1">
+        <MessageHeader channelSlug={channel.slug} />
+        <MessagesList messages={messages} />
+        <div className="p-4 border-t">
+          <SendMessageField channelId={channelId} workspaceId={workspaceId} />
+        </div>
       </div>
+      <ThreadSidebar />
     </div>
   );
 };

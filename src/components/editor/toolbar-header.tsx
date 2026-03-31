@@ -23,7 +23,7 @@ export const ToolbarHeader = ({
   showAICompose = true,
 }: ToolbarEditorProps) => {
   return (
-    <div className="flex flex-wrap items-center gap-4 border-b px-3 py-3">
+    <div className="flex flex-wrap items-center gap-2 border-b px-3 py-3">
       <ToolbarButton
         label="Bold"
         isActive={editor.isActive("bold")}

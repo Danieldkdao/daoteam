@@ -19,7 +19,7 @@ export const ChannelList = ({
   channels: GetProcedureOutput<"channel", "getMany">;
 }) => {
   const [open, setOpen] = useState(true);
-  const { channelId }: { channelId: string | undefined } = useParams();
+  const { channelId } = useParams() as { channelId: string | undefined };
 
   return (
     <Collapsible

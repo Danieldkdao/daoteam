@@ -67,7 +67,7 @@ export const Message = ({
           {message.reactions.map((r, index) => (
             <div
               key={`${r.reaction}${index}`}
-              className="flex items-center gap-2 rounded-full py-1 px-2.5 bg-primary/50"
+              className="flex items-center gap-2 rounded-full py-0.5 px-2.5 bg-primary/50 border border-primary"
             >
               <span>{r.reaction}</span>
               <span className="text-sm font-semibold">{r.count}</span>
