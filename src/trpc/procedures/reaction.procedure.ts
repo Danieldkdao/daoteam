@@ -16,14 +16,13 @@ export const reactionRouter = createTRPCRouter({
   create: protectedProcedure
     .input(
       z.object({
-        reaction: z.string().length(2),
+        reaction: z.string(),
         channelId: z.uuid(),
         workspaceId: z.string(),
         messageId: z.uuid(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      console.log("did it run?");
       const { reaction, channelId, workspaceId, messageId } = input;
       const { id: userId } = ctx.auth.user;
 

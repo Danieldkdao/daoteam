@@ -6,7 +6,7 @@ import { relations } from "drizzle-orm";
 
 export const ReactionTable = pgTable("reactions", {
   id: uuid().primaryKey().defaultRandom(),
-  reaction: varchar("reaction", { length: 1 }).notNull(),
+  reaction: varchar("reaction").notNull(),
   userId: varchar("user_id")
     .references(() => user.id, { onDelete: "cascade" })
     .notNull(),

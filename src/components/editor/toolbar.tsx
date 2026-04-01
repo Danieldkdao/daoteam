@@ -1,5 +1,4 @@
 import type { Editor } from "@tiptap/react";
-import { ToolbarButton } from "./toolbar-button";
 import {
   BoldIcon,
   Code2Icon,
@@ -7,11 +6,11 @@ import {
   ListIcon,
   ListOrderedIcon,
   Redo2Icon,
-  SparklesIcon,
   StrikethroughIcon,
   Undo2Icon,
 } from "lucide-react";
-import { Button } from "../ui/button";
+import { AIComposeButton } from "../ai/ai-compose-button";
+import { ToolbarButton } from "./toolbar-button";
 
 type ToolbarEditorProps = {
   editor: Editor;
@@ -95,10 +94,7 @@ export const Toolbar = ({
         <>
           <div className="mx-1 h-6 w-px bg-border" />
 
-          <Button className="rounded-full bg-linear-90 from-purple-700 to-fuchsia-600 text-white border-none px-4">
-            <SparklesIcon className="text-white" />
-            Compose
-          </Button>
+          <AIComposeButton editor={editor} />
         </>
       )}
     </div>
