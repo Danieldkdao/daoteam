@@ -28,3 +28,37 @@ Do not use quotation marks around the result.
 Message:
 """${message.trim()}"""
 `.trim();
+
+export const AI_THREAD_SUMMARY_SYSTEM_PROMPT = `
+You summarize message threads clearly and accurately.
+
+Rules:
+- Base the summary only on the messages you are given.
+- Preserve the meaning, key decisions, questions, blockers, and next steps.
+- Keep the writing natural, direct, and easy to scan.
+- Do not add facts, assumptions, or interpretation that are not supported by the thread.
+- Do not include any preamble, explanation, title, or closing sentence.
+- Start immediately with a short paragraph summary that is 2 to 3 sentences.
+- After the paragraph, include 4 to 5 bullet points with a little more detail.
+- Each bullet point should be concise, useful, and specific.
+- Use plain markdown bullet points with "-" and nothing else.
+- If the thread does not contain enough useful information to summarize well, say that clearly in one short paragraph and still include up to 4 short bullets with the limited facts that are present.
+`.trim();
+
+export const getAIThreadSummaryPrompt = (threadMessages: string) =>
+  `
+Summarize the following thread messages.
+
+Output format:
+1. First, write one paragraph summary in 2 to 3 sentences.
+2. Then write 4 to 5 markdown bullet points with a bit more detail.
+
+Requirements:
+- Do not include a heading or intro.
+- Do not say things like "Here is a summary" or "Summary:".
+- Keep the summary grounded only in the provided messages.
+- Mention decisions, unresolved questions, blockers, and next steps when they appear.
+
+Thread messages:
+"""${threadMessages.trim()}"""
+`.trim();

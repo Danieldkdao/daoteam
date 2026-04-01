@@ -61,6 +61,9 @@ export const AIComposeButton = ({ editor }: { editor: Editor }) => {
     transport: new DefaultChatTransport({
       api: "/api/ai/compose",
       credentials: "include",
+      // body: {
+      //   workspaceId:
+      // }
     }),
   });
 
@@ -148,7 +151,12 @@ export const AIComposeButton = ({ editor }: { editor: Editor }) => {
               Decline
             </Button>
             <Button
-              disabled={!latestResponse || isLoading || isError}
+              disabled={
+                !latestResponse ||
+                isLoading ||
+                status === "streaming" ||
+                isError
+              }
               onClick={accept}
             >
               Accept

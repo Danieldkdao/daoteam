@@ -1,20 +1,16 @@
 "use client";
 
-import {
-  AlertCircleIcon,
-  MessageSquareIcon,
-  SparklesIcon,
-  XIcon,
-} from "lucide-react";
-import { Button } from "../ui/button";
-import { SendMessageField } from "./send-message";
 import { useThreadMessage } from "@/hooks/use-thread-message";
 import { useTRPC } from "@/trpc/client";
 import { useQuery } from "@tanstack/react-query";
-import { Message } from "./message";
-import { MessagesList } from "./messages-list";
-import { MessageSkeleton } from "./message-skeleton";
+import { AlertCircleIcon, MessageSquareIcon, XIcon } from "lucide-react";
+import { AIThreadSummaryButton } from "../ai/ai-thread-summary-button";
+import { Button } from "../ui/button";
 import { Skeleton } from "../ui/skeleton";
+import { Message } from "./message";
+import { MessageSkeleton } from "./message-skeleton";
+import { MessagesList } from "./messages-list";
+import { SendMessageField } from "./send-message";
 
 type ThreadSidebarProps = {
   channelId: string;
@@ -163,6 +159,7 @@ const ThreadSidebarShell = ({
   children: React.ReactNode;
   onClose: () => void;
 }) => {
+  const { currentThreadMessage } = useThreadMessage();
   return (
     <div className="border-l w-130 shrink-0 flex flex-col min-h-0 overflow-x-hidden">
       <div className="px-5 h-16 border-b flex items-center justify-between min-w-0">
@@ -171,10 +168,9 @@ const ThreadSidebarShell = ({
           <span className="text-xl font-medium">Thread</span>
         </div>
         <div className="flex items-center gap-2">
-          <Button className="rounded-full bg-linear-90 from-purple-700 to-fuchsia-600 text-white border-none px-4">
-            <SparklesIcon className="text-white" />
-            Summarize
-          </Button>
+          {currentThreadMessage && (
+            <AIThreadSummaryButton threadId={currentThreadMessage} />
+          )}
           <Button
             variant="outline"
             className="size-11 sm:size-11 [&_svg:not([class*='size-'])]:size-5"

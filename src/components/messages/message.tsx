@@ -112,15 +112,6 @@ export const Message = ({
           </button>
         )}
 
-        {forThread && (
-          <EmojiPopoverButton
-            channelId={message.channelId}
-            workspaceId={message.organizationId}
-            messageId={message.id}
-            forThread={forThread}
-          />
-        )}
-
         <div className="flex items-center gap-2 flex-wrap w-full">
           {message.reactions.map((r, index) => (
             <div
@@ -131,6 +122,14 @@ export const Message = ({
               <span className="text-sm font-semibold">{r.count}</span>
             </div>
           ))}
+          {forThread && (
+            <EmojiPopoverButton
+              channelId={message.channelId}
+              workspaceId={message.organizationId}
+              messageId={message.id}
+              forThread={forThread}
+            />
+          )}
         </div>
       </div>
       {!forThread && (
