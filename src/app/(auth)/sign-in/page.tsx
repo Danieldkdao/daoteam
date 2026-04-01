@@ -13,7 +13,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { authClient } from "@/lib/auth/auth-client";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { OtpVerification } from "@/components/auth/otp-verification";
 
 const formSchema = z.object({
@@ -38,6 +38,12 @@ const SignInPage = () => {
       password: "",
     },
   });
+  const searchParams = useSearchParams();
+  const invitation = searchParams?.get("invitation");
+
+  const callbackURL = invitation
+    ? `/accept-invitation/${invitation}`
+    : "/workspace";
 
   useEffect(() => {
     if (session && !session.user.emailVerified) {
@@ -62,12 +68,12 @@ const SignInPage = () => {
     await authClient.signIn.email(
       {
         ...data,
-        callbackURL: "/workspace",
+        callbackURL,
       },
       {
         onSuccess: () => {
           toast.success("Signed in successfully!");
-          router.push("/workspace");
+          router.push(callbackURL);
         },
         onError: (error) => {
           if (error.error.code === "EMAIL_NOT_VERIFIED") {
@@ -86,7 +92,7 @@ const SignInPage = () => {
     setSocialSignInLoading(true);
     await authClient.signIn.social({
       provider,
-      callbackURL: "/workspace",
+      callbackURL,
       fetchOptions: {
         onSuccess: () => {
           setSocialSignInLoading(false);
@@ -103,7 +109,9 @@ const SignInPage = () => {
   };
 
   if (verifyEmail) {
-    return <OtpVerification verifyEmail={verifyEmail} />;
+    return (
+      <OtpVerification verifyEmail={verifyEmail} callbackUrl={callbackURL} />
+    );
   }
 
   const isPending = socialSignInLoading || form.formState.isSubmitting;
@@ -182,7 +190,7 @@ const SignInPage = () => {
       </div>
 
       <Link
-        href="/sign-up"
+        href={`/sign-up${invitation ? `?invitation=${invitation}` : ""}`}
         className="text-sm font-medium text-muted-foreground"
       >
         Don't have an account? Sign up here.

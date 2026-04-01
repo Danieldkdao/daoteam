@@ -17,6 +17,8 @@ import {
   SelectValue,
 } from "../ui/select";
 import { toast } from "sonner";
+import { LoadingSwap } from "../ui/loading-swap";
+import { UNAUTHED_MESSAGE } from "@/lib/constants";
 
 const formSchema = z.object({
   email: z.email({ error: "Invalid email." }),
@@ -38,6 +40,7 @@ export const InviteMemberModal = ({
   setOpen,
   workspaceId,
 }: InviteMemberModalProps) => {
+  const { data: session, isPending } = authClient.useSession();
   const form = useForm<FormType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -47,6 +50,10 @@ export const InviteMemberModal = ({
   });
 
   const handleInviteMember = async ({ email, role }: FormType) => {
+    if (isPending) return toast.info("Loading auth state...");
+    if (!session) return toast.error(UNAUTHED_MESSAGE);
+    if (session?.user.email === email)
+      return toast.error("You cannot send an invitation to yourself.");
     await authClient.organization.inviteMember(
       {
         email,
@@ -114,7 +121,11 @@ export const InviteMemberModal = ({
             </Field>
           )}
         />
-        <Button className="w-full">Send Invite</Button>
+        <Button className="w-full" disabled={form.formState.isSubmitting}>
+          <LoadingSwap isLoading={form.formState.isSubmitting}>
+            Send Invite
+          </LoadingSwap>
+        </Button>
       </form>
     </ResponsiveDialog>
   );

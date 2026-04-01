@@ -1,8 +1,6 @@
 "use client";
 
 import { authClient } from "@/lib/auth/auth-client";
-import { useTRPC } from "@/trpc/client";
-import { useMutation } from "@tanstack/react-query";
 import { CheckIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -10,6 +8,7 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { LoadingSwap } from "../ui/loading-swap";
 import { Separator } from "../ui/separator";
+import { useState } from "react";
 
 type PlanCardProps = {
   title: string;
@@ -29,29 +28,38 @@ export const PlanCard = ({
   currentWorkspaceId,
 }: PlanCardProps) => {
   const router = useRouter();
-  const trpc = useTRPC();
+  const [loading, setLoading] = useState(false);
   const { data: activeWorkspace } = authClient.useActiveOrganization();
-  const continueWithFreePlan = useMutation(
-    trpc.pricing.continueWithFreePlan.mutationOptions({
-      onSuccess: () => {
-        router.push("/workspace");
-      },
-      onError: (error) => {
-        toast.error(error.message);
-      },
-    }),
-  );
 
   const handleSelectPlan = async () => {
+    setLoading(true);
     if (plan === "free") {
-      await continueWithFreePlan.mutateAsync();
+      await authClient.updateUser({
+        onboardingPhase: "completed",
+        plan: "free",
+        fetchOptions: {
+          onSuccess: () => {
+            router.push("/workspace");
+          },
+          onError: (error) => {
+            toast.error(
+              error.error.message ||
+                "Something went wrong. Please try again or come back later.",
+            );
+          },
+        },
+      });
+      setLoading(false);
       return;
     }
 
-    if (!currentWorkspaceId && !activeWorkspace?.id)
+    if (!currentWorkspaceId && !activeWorkspace?.id) {
+      setLoading(false);
       return toast.error(
         "Something went wrong. Please try again or come back later.",
       );
+    }
+
     await authClient.subscription.upgrade(
       {
         plan,
@@ -70,6 +78,7 @@ export const PlanCard = ({
         },
       },
     );
+    setLoading(false);
   };
 
   return (
@@ -93,13 +102,8 @@ export const PlanCard = ({
             </div>
           ))}
         </div>
-        <Button
-          onClick={handleSelectPlan}
-          disabled={continueWithFreePlan.isPending}
-        >
-          <LoadingSwap isLoading={continueWithFreePlan.isPending}>
-            Select plan
-          </LoadingSwap>
+        <Button onClick={handleSelectPlan} disabled={loading}>
+          <LoadingSwap isLoading={loading}>Select plan</LoadingSwap>
         </Button>
         <span className="text-muted-foreground text-sm font-medium">
           *All limits are shared across the organization.

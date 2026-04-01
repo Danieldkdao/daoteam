@@ -14,10 +14,15 @@ export const proxy = async (request: NextRequest) => {
   const existingUser = await db.query.user.findFirst({
     where: eq(user.id, session?.user.id ?? ""),
   });
-  if (!authedRoutes.includes(pathname) && !existingUser)
+  if (
+    !authedRoutes.includes(pathname) &&
+    !pathname.includes("/accept-invitation") &&
+    !existingUser
+  )
     return NextResponse.redirect(new URL("/sign-in", request.url));
   if (
     !pathname.includes("/onboarding") &&
+    !pathname.includes("/accept-invitation") &&
     existingUser &&
     existingUser.onboardingPhase !== "completed"
   ) {

@@ -16,6 +16,7 @@ import { EditMessage } from "./edit-message";
 import { EmojiPopoverButton } from "./emoji-popover-button";
 import { useThreadMessage } from "@/hooks/use-thread-message";
 import Image from "next/image";
+import { authClient } from "@/lib/auth/auth-client";
 
 type MessageProps = {
   message: GetProcedureOutput<"message", "getMany">["messages"][number];
@@ -29,6 +30,7 @@ export const Message = ({
   forThread = false,
 }: MessageProps) => {
   const [isEditing, setIsEditing] = useState(false);
+  const { data: session } = authClient.useSession();
   const { setCurrentThreadMessage } = useThreadMessage();
   const formattedDate = useMemo(() => {
     const datePart = message.createdAt.toLocaleDateString("en-US", {
@@ -133,18 +135,20 @@ export const Message = ({
       </div>
       {!forThread && (
         <div className="absolute flex opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto bg-background rounded-md p-2 items-center gap-2 -top-1 -right-1 shadow-sm border transition-opacity duration-200">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                onClick={() => setIsEditing(true)}
-              >
-                <PenIcon />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Edit message</TooltipContent>
-          </Tooltip>
+          {session?.user.id === message.userId && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  onClick={() => setIsEditing(true)}
+                >
+                  <PenIcon />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Edit message</TooltipContent>
+            </Tooltip>
+          )}
           <EmojiPopoverButton
             channelId={message.channelId}
             workspaceId={message.organizationId}

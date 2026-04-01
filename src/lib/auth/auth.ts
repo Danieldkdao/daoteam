@@ -20,13 +20,13 @@ export const auth = betterAuth({
       plan: {
         type: "string",
         required: true,
-        input: false,
+        input: true,
         defaultValue: "free",
       },
       onboardingPhase: {
         type: "string",
         required: true,
-        input: false,
+        input: true,
         defaultValue: "create-organization",
       },
     },
@@ -57,8 +57,9 @@ export const auth = betterAuth({
       },
     }),
     organization({
+      requireEmailVerificationOnInvitation: true,
       async sendInvitationEmail(data) {
-        const inviteUrl = `${envServer.BETTER_AUTH_URL}/accept-invitation?id=${data.id}`;
+        const inviteUrl = `${envServer.BETTER_AUTH_URL}/accept-invitation/${data.id}`;
 
         await sendOrganizationInvitation({
           email: data.email,

@@ -14,6 +14,7 @@ import Link from "next/link";
 import { authClient } from "@/lib/auth/auth-client";
 import { toast } from "sonner";
 import { OtpVerification } from "@/components/auth/otp-verification";
+import { useSearchParams } from "next/navigation";
 
 const formSchema = z
   .object({
@@ -45,6 +46,12 @@ const SignInPage = () => {
       confirmPassword: "",
     },
   });
+  const searchParams = useSearchParams();
+  const invitation = searchParams?.get("invitation");
+
+  const callbackURL = invitation
+    ? `/accept-invitation/${invitation}`
+    : "/onboarding";
 
   useEffect(() => {
     if (session && !session.user.emailVerified) {
@@ -69,7 +76,7 @@ const SignInPage = () => {
     await authClient.signUp.email(
       {
         ...data,
-        callbackURL: "/onboarding",
+        callbackURL,
       },
       {
         onSuccess: () => {
@@ -90,7 +97,7 @@ const SignInPage = () => {
     setSocialSignInLoading(true);
     await authClient.signIn.social({
       provider,
-      callbackURL: "/onboarding",
+      callbackURL,
       fetchOptions: {
         onSuccess: () => {
           setSocialSignInLoading(false);
@@ -108,7 +115,7 @@ const SignInPage = () => {
 
   if (verifyEmail) {
     return (
-      <OtpVerification verifyEmail={verifyEmail} callbackUrl="/onboarding" />
+      <OtpVerification verifyEmail={verifyEmail} callbackUrl={callbackURL} />
     );
   }
 
@@ -210,7 +217,7 @@ const SignInPage = () => {
       </div>
 
       <Link
-        href="/sign-in"
+        href={`/sign-in${invitation ? `?invitation=${invitation}` : ""}`}
         className="text-sm font-medium text-muted-foreground"
       >
         Already have an account? Sign in here.
