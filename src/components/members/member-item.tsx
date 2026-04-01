@@ -8,7 +8,7 @@ export const MemberItem = ({
   member: GetProcedureOutput<"workspace", "getMembers">["members"][number];
 }) => {
   return (
-    <div className="w-full flex justify-between items-start p-2 rounded-md hover:bg-accent/40">
+    <div className="w-full flex justify-between items-start p-2 rounded-md hover:bg-primary/40">
       <div className="flex-1 min-w-0 flex gap-2">
         <UserAvatar
           name={member.user.name}
@@ -24,7 +24,7 @@ export const MemberItem = ({
           </span>
         </div>
       </div>
-      <Badge variant="outline" className="capitalize">
+      <Badge variant="secondary" className="capitalize">
         {member.role}
       </Badge>
     </div>

@@ -45,7 +45,7 @@ export const CreateChannelModal = ({
     },
   });
 
-  const orgId = params.workspaceId;
+  const orgId = params?.workspaceId;
 
   const createChannel = useMutation(
     trpc.channel.create.mutationOptions({

@@ -82,7 +82,10 @@ const ChannelIdSuspense = ({ workspaceId, channelId }: ChannelIdViewProps) => {
     workspaceId,
   });
   useChannelSocket(channelId, workspaceId, (event) => {
+    if (event.type === SOCKET_EVENT.MEMBER_ADDED) return;
+
     if (event.channelId !== channelId) return;
+
     if (event.type === SOCKET_EVENT.MESSAGE_CREATED_EDITED) {
       void queryClient.invalidateQueries(messageQueryOptions);
     } else if (event.type === SOCKET_EVENT.THREAD_MESSAGE_CREATED) {

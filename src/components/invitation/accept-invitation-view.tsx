@@ -1,20 +1,20 @@
 "use client";
 
+import { useConfirm } from "@/hooks/use-confirm";
+import { authClient } from "@/lib/auth/auth-client";
 import { useTRPC } from "@/trpc/client";
 import {
   QueryErrorResetBoundary,
   useSuspenseQuery,
 } from "@tanstack/react-query";
+import { TriangleAlertIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Suspense, useState } from "react";
 import { ErrorBoundary, type FallbackProps } from "react-error-boundary";
-import { Button } from "../ui/button";
-import { useConfirm } from "@/hooks/use-confirm";
-import { authClient } from "@/lib/auth/auth-client";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { Button } from "../ui/button";
 import { LoadingSwap } from "../ui/loading-swap";
 import { Skeleton } from "../ui/skeleton";
-import { TriangleAlertIcon } from "lucide-react";
 
 type AcceptInvitationProps = {
   invitationId: string;

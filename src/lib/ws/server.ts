@@ -10,18 +10,32 @@ import {
 } from "../checks";
 
 type ChannelSocket = WebSocket & {
+  type: "channel";
   userId: string;
   isAlive: boolean;
   channelId: string;
 };
+
+type WorkspaceSocket = WebSocket & {
+  type: "workspace";
+  isAlive: boolean;
+  workspaceId: string;
+  userId: string;
+};
+
+type ManagedSocket = ChannelSocket | WorkspaceSocket;
 
 export type SocketServer = HTTPServer & {
   wss?: WebSocketServer;
   wsInitialized?: boolean;
 };
 
-type WsState = {
+type WsChannelState = {
   rooms: Map<string, Set<ChannelSocket>>;
+};
+
+type WsWorkspaceState = {
+  rooms: Map<string, Set<WorkspaceSocket>>;
 };
 
 type UpgradeSocket = {
@@ -30,14 +44,26 @@ type UpgradeSocket = {
 };
 
 const globalForWs = globalThis as typeof globalThis & {
-  __daoteamWsState?: WsState;
+  __daoteamWsState?: {
+    channelRooms: WsChannelState["rooms"];
+    workspaceRooms: WsWorkspaceState["rooms"];
+  };
 };
 
 const getWsState = () => {
+  const channelRoomMap = new Map<string, Set<ChannelSocket>>();
+  const workspaceRoomMap = new Map<string, Set<WorkspaceSocket>>();
   if (!globalForWs.__daoteamWsState) {
     globalForWs.__daoteamWsState = {
-      rooms: new Map(),
+      channelRooms: channelRoomMap,
+      workspaceRooms: workspaceRoomMap,
     };
+  }
+  if (!globalForWs.__daoteamWsState.channelRooms) {
+    globalForWs.__daoteamWsState.channelRooms = channelRoomMap;
+  }
+  if (!globalForWs.__daoteamWsState.workspaceRooms) {
+    globalForWs.__daoteamWsState.workspaceRooms = workspaceRoomMap;
   }
 
   return globalForWs.__daoteamWsState;
@@ -83,7 +109,23 @@ export const broadcastToChannel = (
   channelId: string,
   event: ServerSocketEvent,
 ) => {
-  const room = getWsState().rooms.get(channelId);
+  const room = getWsState().channelRooms.get(channelId);
+  if (!room) return;
+
+  const payload = JSON.stringify(event);
+
+  for (const client of room) {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(payload);
+    }
+  }
+};
+
+export const broadcastToWorkspace = (
+  workspaceId: string,
+  event: ServerSocketEvent,
+) => {
+  const room = getWsState().workspaceRooms.get(workspaceId);
   if (!room) return;
 
   const payload = JSON.stringify(event);
@@ -129,7 +171,7 @@ export const initWebSocketServer = (server: SocketServer) => {
       const channelId = url.searchParams.get("channelId");
       const workspaceId = url.searchParams.get("workspaceId");
 
-      if (!channelId || !workspaceId) {
+      if (!workspaceId) {
         rejectUpgrade(socket, 400, "Bad Request");
         return;
       }
@@ -152,17 +194,30 @@ export const initWebSocketServer = (server: SocketServer) => {
         return;
       }
 
-      const channelCheck = await checkExistingChannel({
-        channelId,
-        workspaceId: orgMemberCheck.org.id,
-      });
-      if (channelCheck.message === "NOCHANNEL") {
-        rejectUpgrade(socket, 403, "Forbidden");
-        return;
+      if (channelId) {
+        const channelCheck = await checkExistingChannel({
+          channelId,
+          workspaceId: orgMemberCheck.org.id,
+        });
+
+        if (channelCheck.message === "NOCHANNEL") {
+          rejectUpgrade(socket, 403, "Forbidden");
+          return;
+        }
       }
 
       wss.handleUpgrade(request, socket, head, (ws) => {
+        if (!channelId) {
+          const client = ws as WorkspaceSocket;
+          client.type = "workspace";
+          client.userId = session.user.id;
+          client.workspaceId = orgMemberCheck.org.id;
+          wss.emit("connection", client, request);
+          return;
+        }
+
         const client = ws as ChannelSocket;
+        client.type = "channel";
         client.userId = session.user.id;
         client.channelId = channelId;
         wss.emit("connection", client, request);
@@ -173,36 +228,56 @@ export const initWebSocketServer = (server: SocketServer) => {
   });
 
   wss.on("connection", (rawWs) => {
-    const ws = rawWs as ChannelSocket;
-    const room = state.rooms.get(ws.channelId) ?? new Set<ChannelSocket>();
+    const ws = rawWs as ManagedSocket;
 
     ws.isAlive = true;
     ws.on("pong", () => {
       ws.isAlive = true;
     });
 
-    room.add(ws);
-    state.rooms.set(ws.channelId, room);
+    if (ws.type === "channel") {
+      const room =
+        state.channelRooms.get(ws.channelId) ?? new Set<ChannelSocket>();
 
-    ws.send(
-      JSON.stringify({
-        type: SOCKET_EVENT.READY,
-        channelId: ws.channelId,
-      } satisfies ServerSocketEvent),
-    );
+      room.add(ws);
+      state.channelRooms.set(ws.channelId, room);
+
+      ws.send(
+        JSON.stringify({
+          type: SOCKET_EVENT.READY,
+          channelId: ws.channelId,
+        } satisfies ServerSocketEvent),
+      );
+
+      ws.on("close", () => {
+        room.delete(ws);
+
+        if (room.size === 0) {
+          state.channelRooms.delete(ws.channelId);
+        }
+      });
+
+      return;
+    }
+
+    const room =
+      state.workspaceRooms.get(ws.workspaceId) ?? new Set<WorkspaceSocket>();
+
+    room.add(ws);
+    state.workspaceRooms.set(ws.workspaceId, room);
 
     ws.on("close", () => {
       room.delete(ws);
 
       if (room.size === 0) {
-        state.rooms.delete(ws.channelId);
+        state.workspaceRooms.delete(ws.workspaceId);
       }
     });
   });
 
   const interval = setInterval(() => {
     wss.clients.forEach((client) => {
-      const ws = client as ChannelSocket;
+      const ws = client as ManagedSocket;
       if (ws.isAlive === false) return ws.terminate();
 
       ws.isAlive = false;

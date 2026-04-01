@@ -9,6 +9,8 @@ import Stripe from "stripe";
 import { stripe } from "@better-auth/stripe";
 import { and, eq } from "drizzle-orm";
 import { member } from "@/db/schema";
+import { broadcastToWorkspace } from "../ws/server";
+import { SOCKET_EVENT } from "../ws/events";
 
 const stripeClient = new Stripe(envServer.STRIPE_SECRET_KEY, {
   apiVersion: "2026-02-25.clover",
@@ -58,6 +60,14 @@ export const auth = betterAuth({
     }),
     organization({
       requireEmailVerificationOnInvitation: true,
+      organizationHooks: {
+        afterAcceptInvitation: async (data) => {
+          broadcastToWorkspace(data.organization.id, {
+            workspaceId: data.organization.id,
+            type: SOCKET_EVENT.MEMBER_ADDED,
+          });
+        },
+      },
       async sendInvitationEmail(data) {
         const inviteUrl = `${envServer.BETTER_AUTH_URL}/accept-invitation/${data.id}`;
 
