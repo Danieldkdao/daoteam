@@ -1,16 +1,24 @@
 import { db } from "@/db/db";
 import { member, organization, user } from "@/db/schema";
 import { auth } from "@/lib/auth/auth";
-import { and, desc, eq, getTableColumns, inArray, not } from "drizzle-orm";
-import { headers } from "next/headers";
-import { TRPCError } from "@trpc/server";
-import z from "zod";
-import { protectedProcedure, createTRPCRouter } from "../init";
 import { generateSlug } from "@/lib/utils";
+import { TRPCError } from "@trpc/server";
+import {
+  and,
+  desc,
+  eq,
+  getTableColumns,
+  ilike,
+  inArray,
+  or,
+} from "drizzle-orm";
+import { headers } from "next/headers";
+import z from "zod";
 import {
   checkExistingUserTRPC,
   checkExistingWorkspaceMemberTRPC,
 } from "../helpers";
+import { createTRPCRouter, protectedProcedure } from "../init";
 
 export const workspaceRouter = createTRPCRouter({
   create: protectedProcedure
@@ -114,17 +122,19 @@ export const workspaceRouter = createTRPCRouter({
     .input(
       z.object({
         workspaceId: z.string().optional(),
+        search: z.string().optional(),
       }),
     )
     .query(async ({ input, ctx }) => {
+      const { workspaceId, search } = input;
       const { id: userId } = ctx.auth.user;
 
-      if (!input.workspaceId) return { currentUserMember: null, members: [] };
+      if (!workspaceId) return { currentUserMember: null, members: [] };
 
-      const existingUser = await checkExistingUserTRPC(userId);
+      await checkExistingUserTRPC(userId);
       const memberOrgInfo = await checkExistingWorkspaceMemberTRPC({
         userId,
-        workspaceId: input.workspaceId,
+        workspaceId: workspaceId,
       });
 
       const members = await db
@@ -137,7 +147,12 @@ export const workspaceRouter = createTRPCRouter({
         .where(
           and(
             eq(member.organizationId, memberOrgInfo.organization.id),
-            not(eq(member.userId, existingUser.id)),
+            search?.trim()
+              ? or(
+                  ilike(user.name, `%${search}%`),
+                  ilike(user.email, `%${search}%`),
+                )
+              : undefined,
           ),
         );
 

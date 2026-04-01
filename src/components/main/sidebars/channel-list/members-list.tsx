@@ -7,6 +7,11 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { UserAvatar } from "@/components/user-avatar";
 import { cn } from "@/lib/utils";
 import { useTRPC } from "@/trpc/client";
@@ -59,26 +64,37 @@ export const MembersListView = () => {
             <div className="space-y-1">
               {workspaceMembers?.length ? (
                 workspaceMembers.map((m) => (
-                  <div
-                    key={m.id}
-                    className="w-full hover:bg-muted hover:text-foreground p-2 rounded-md cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2.5 w-full justify-start">
-                      <UserAvatar
-                        name={m.user.name}
-                        image={m.user.image}
-                        className="size-12"
-                      />
-                      <div className="flex flex-col">
-                        <span className="text-lg font-semibold">
+                  <Tooltip key={m.id}>
+                    <TooltipTrigger asChild>
+                      <div className="w-full hover:bg-muted hover:text-foreground p-2 rounded-md cursor-pointer">
+                        <div className="flex items-center gap-2.5 w-full justify-start">
+                          <UserAvatar
+                            name={m.user.name}
+                            image={m.user.image}
+                            className="size-12 shrink-0"
+                          />
+                          <div className="flex flex-col flex-1 min-w-0">
+                            <span className="text-lg font-semibold truncate">
+                              {m.user.name}
+                            </span>
+                            <span className="text-muted-foreground truncate">
+                              {m.user.email}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent align="start">
+                      <div className="flex flex-col items-start">
+                        <span className="text-base font-semibold">
                           {m.user.name}
                         </span>
-                        <span className="text-muted-foreground">
+                        <span className="font-medium text-muted-foreground">
                           {m.user.email}
                         </span>
                       </div>
-                    </div>
-                  </div>
+                    </TooltipContent>
+                  </Tooltip>
                 ))
               ) : currentUserMember?.role === "owner" ||
                 (currentUserMember?.role === "admin" && workspaceId) ? (

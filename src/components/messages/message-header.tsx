@@ -1,7 +1,6 @@
-import { UsersIcon } from "lucide-react";
-import { Button } from "../ui/button";
-import { ThemeToggle } from "../theme-toggle";
 import { InviteMemberButton } from "../members/invite-member-button";
+import { ShowMembersButton } from "../members/show-members-button";
+import { ThemeToggle } from "../theme-toggle";
 
 export const MessageHeader = ({
   channelSlug,
@@ -17,10 +16,7 @@ export const MessageHeader = ({
       </h1>
       <div className="flex items-center gap-2">
         <InviteMemberButton workspaceId={workspaceId} />
-        <Button variant="outline">
-          <UsersIcon />
-          Members
-        </Button>
+        <ShowMembersButton workspaceId={workspaceId} />
         <ThemeToggle />
       </div>
     </div>
