@@ -9,6 +9,7 @@ import { Button } from "../ui/button";
 import { LoadingSwap } from "../ui/loading-swap";
 import { Separator } from "../ui/separator";
 import { useState } from "react";
+import { Subscription } from "@better-auth/stripe";
 
 type PlanCardProps = {
   title: string;
@@ -17,6 +18,8 @@ type PlanCardProps = {
   features: string[];
   isMostPopular: boolean;
   currentWorkspaceId: string | null;
+  activeSubscription?: Subscription | null;
+  isPending?: boolean;
 };
 
 export const PlanCard = ({
@@ -26,14 +29,34 @@ export const PlanCard = ({
   features,
   isMostPopular,
   currentWorkspaceId,
+  activeSubscription,
+  isPending,
 }: PlanCardProps) => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const { data: session, isPending: authPending } = authClient.useSession();
   const { data: activeWorkspace } = authClient.useActiveOrganization();
 
   const handleSelectPlan = async () => {
     setLoading(true);
     if (plan === "free") {
+      if (activeSubscription && currentWorkspaceId) {
+        await authClient.subscription.cancel({
+          subscriptionId: activeSubscription.id,
+          customerType: "organization",
+          referenceId: currentWorkspaceId,
+          returnUrl: window.location.href,
+          fetchOptions: {
+            onSuccess: async () => {
+              await authClient.updateUser({
+                plan: "free",
+              });
+            },
+          },
+        });
+        return;
+      }
+
       await authClient.updateUser({
         onboardingPhase: "completed",
         plan: "free",
@@ -65,11 +88,17 @@ export const PlanCard = ({
         plan,
         referenceId: currentWorkspaceId ?? activeWorkspace?.id,
         customerType: "organization",
-        successUrl: "/onboarding/redirect",
+        successUrl: session ? window.location.href : "/onboarding/redirect",
         cancelUrl: window.location.href,
+        returnUrl: window.location.href,
         disableRedirect: false,
       },
       {
+        onSuccess: async () => {
+          await authClient.updateUser({
+            plan,
+          });
+        },
         onError: (error) => {
           toast.success(
             error.error.message ||
@@ -80,6 +109,18 @@ export const PlanCard = ({
     );
     setLoading(false);
   };
+
+  const handleBillingPortal = async () => {
+    if (!currentWorkspaceId) return toast.error("No organization found.");
+    await authClient.subscription.billingPortal({
+      returnUrl: window.location.href,
+      customerType: "organization",
+      referenceId: currentWorkspaceId,
+    });
+  };
+
+  const pending = loading || isPending || authPending;
+  const isActivePlan = activeSubscription?.plan === plan;
 
   return (
     <div className="bg-card p-10 border border-border rounded-lg flex flex-col gap-8 h-full w-full">
@@ -102,8 +143,18 @@ export const PlanCard = ({
             </div>
           ))}
         </div>
-        <Button onClick={handleSelectPlan} disabled={loading}>
-          <LoadingSwap isLoading={loading}>Select plan</LoadingSwap>
+        <Button
+          variant={isActivePlan ? "outline" : "default"}
+          onClick={isActivePlan ? handleBillingPortal : handleSelectPlan}
+          disabled={pending}
+        >
+          <LoadingSwap isLoading={pending}>
+            {session?.user.onboardingPhase !== "completed"
+              ? "Select Plan"
+              : isActivePlan
+                ? "Manage Plan"
+                : "Select Plan"}
+          </LoadingSwap>
         </Button>
         <span className="text-muted-foreground text-sm font-medium">
           *All limits are shared across the organization.

@@ -55,6 +55,6 @@ export const getEditorConfig = ({
       },
     },
     immediatelyRender: false,
-    shouldRerenderOnTransaction: true,
+    shouldRerenderOnTransaction: false,
   };
 };

@@ -98,8 +98,6 @@ const ChannelIdSuspense = ({ workspaceId, channelId }: ChannelIdViewProps) => {
       );
       void queryClient.invalidateQueries(messageQueryOptions);
     }
-
-    void queryClient.invalidateQueries(messageQueryOptions);
   });
   const { data } = useSuspenseQuery(messageQueryOptions);
   const channel = data.channel;

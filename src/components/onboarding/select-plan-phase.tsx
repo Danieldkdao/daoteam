@@ -1,53 +1,8 @@
 "use client";
 
-import { PricingPlan } from "@/db/schema";
+import { PLAN_DETAILS } from "@/lib/constants";
 import { PlanCard } from "../pricing/plan-card";
 import { OnboardingClientPhaseProps } from "@/lib/types";
-
-const planDetails: {
-  title: string;
-  plan: PricingPlan;
-  price: number;
-  features: string[];
-  isMostPopular: boolean;
-}[] = [
-  {
-    title: "Free",
-    plan: "free",
-    price: 0,
-    features: [
-      "Basic Email Support",
-      "Up to 50 AI generated messages per month",
-      "One AI generated thread summary per month",
-      "Access to all core features",
-    ],
-    isMostPopular: false,
-  },
-  {
-    title: "Pro",
-    plan: "pro",
-    price: 99,
-    features: [
-      "Everything in Free and:",
-      "Priority Email Support",
-      "Up to 500 AI generated messages per month",
-      "5 AI generated thread summaries per month",
-    ],
-    isMostPopular: true,
-  },
-  {
-    title: "Enterprise",
-    plan: "enterprise",
-    price: 500,
-    features: [
-      "Everything in Pro and:",
-      "Unlimited AI generated messages",
-      "Unlimited AI generated thread summary per month",
-      "Advanced Features and Analytics",
-    ],
-    isMostPopular: false,
-  },
-];
 
 export const SelectPlanPhase = ({
   currentWorkspaceId,
@@ -64,7 +19,7 @@ export const SelectPlanPhase = ({
         </p>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-300">
-        {planDetails.map((details) => (
+        {PLAN_DETAILS.map((details) => (
           <PlanCard
             key={details.plan}
             {...details}

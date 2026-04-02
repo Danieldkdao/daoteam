@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2Icon, SparklesIcon } from "lucide-react";
+import { Loader2Icon, SparklesIcon, TriangleAlertIcon } from "lucide-react";
 import { Button } from "../ui/button";
 import {
   Popover,
@@ -22,6 +22,34 @@ const AIComposeLoading = () => {
       <Skeleton className="h-4 w-[97%] rounded-md bg-primary/40" />
       <Skeleton className="h-4 w-[92%] rounded-md bg-primary/40" />
       <Skeleton className="h-4 w-[88%] rounded-md bg-primary/40" />
+    </div>
+  );
+};
+
+const AIThreadSummaryError = ({ onRetry }: { onRetry: () => void }) => {
+  return (
+    <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm">
+      <div className="flex items-start gap-3">
+        <div className="mt-0.5 rounded-full bg-destructive/10 p-2">
+          <TriangleAlertIcon className="size-4 text-destructive" />
+        </div>
+
+        <div className="min-w-0 flex-1 space-y-1">
+          <p className="font-medium text-foreground">
+            Couldn&apos;t summarize this thread
+          </p>
+          <p className="text-muted-foreground">
+            The summary request failed before we got a response. Try again and
+            we&apos;ll generate a fresh summary.
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4 flex justify-end">
+        <Button variant="outline" onClick={onRetry}>
+          Try Again
+        </Button>
+      </div>
     </div>
   );
 };
@@ -90,7 +118,7 @@ export const AIThreadSummaryButton = ({ threadId }: { threadId: string }) => {
           {isLoading ? (
             <AIComposeLoading />
           ) : isError ? (
-            <div>error</div>
+            <AIThreadSummaryError onRetry={() => void handleGenerate()} />
           ) : (
             <div className="max-h-80 overflow-auto text-base">
               <MarkdownRenderer>{latestResponse ?? ""}</MarkdownRenderer>

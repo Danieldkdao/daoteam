@@ -18,21 +18,31 @@ export const useChannelSocket = (
 
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
+    let socket: WebSocket | null = null;
 
     const connect = async () => {
       setStatus("connecting");
 
-      await fetch("/api/socket", {
-        method: "GET",
-        credentials: "include",
-      });
+      try {
+        await fetch("/api/socket", {
+          method: "GET",
+          credentials: "include",
+          signal: controller.signal,
+        });
+      } catch {
+        if (!cancelled) setStatus("closed");
+        return;
+      }
+
+      if (cancelled) return;
 
       const url = new URL("/api/ws", window.location.origin);
       url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
       url.searchParams.set("channelId", channelId);
       url.searchParams.set("workspaceId", workspaceId);
 
-      const socket = new WebSocket(url.toString());
+      socket = new WebSocket(url.toString());
       socketRef.current = socket;
 
       socket.onopen = () => {
@@ -64,6 +74,11 @@ export const useChannelSocket = (
 
     return () => {
       cancelled = true;
+      controller.abort();
+      socket?.close(1000, "leaving channel");
+      if (socketRef.current === socket) {
+        socketRef.current = null;
+      }
       socketRef.current?.close(1000, "leaving channel");
       socketRef.current = null;
     };
