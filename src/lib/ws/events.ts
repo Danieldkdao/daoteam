@@ -3,6 +3,7 @@ export const SOCKET_EVENT = {
   MESSAGE_CREATED_EDITED: "message.created-edited",
   THREAD_MESSAGE_CREATED: "thread.message.created",
   MEMBER_ADDED: "member.added",
+  WORKSPACE_PRESENCE_SYNC: "workspace.presence.sync",
 } as const;
 
 export type SocketReadyEvent = {
@@ -23,10 +24,17 @@ export type MemberAddedEvent = {
   workspaceId: string;
 };
 
+export type WorkspacePresenceSyncEvent = {
+  type: typeof SOCKET_EVENT.WORKSPACE_PRESENCE_SYNC;
+  workspaceId: string;
+  userIds: string[];
+};
+
 export type ServerSocketEvent =
   | SocketReadyEvent
   | MessageCreatedEditedEvent
-  | MemberAddedEvent;
+  | MemberAddedEvent
+  | WorkspacePresenceSyncEvent;
 
 export const isServerSocketEvent = (
   value: unknown,
@@ -50,6 +58,14 @@ export const isServerSocketEvent = (
 
   if (event.type === SOCKET_EVENT.MEMBER_ADDED) {
     return typeof event.workspaceId === "string";
+  }
+
+  if (event.type === SOCKET_EVENT.WORKSPACE_PRESENCE_SYNC) {
+    return (
+      typeof event.workspaceId === "string" &&
+      Array.isArray(event.userIds) &&
+      event.userIds.every((userId) => typeof userId === "string")
+    );
   }
 
   return false;

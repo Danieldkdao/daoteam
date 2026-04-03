@@ -12,6 +12,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useWorkspacePresence } from "@/hooks/use-workspace-presence";
 import { UserAvatar } from "@/components/user-avatar";
 import { cn } from "@/lib/utils";
 import { useTRPC } from "@/trpc/client";
@@ -29,9 +30,11 @@ export const MembersListView = () => {
     isError,
   } = useQuery(trpc.workspace.getMembers.queryOptions({ workspaceId }));
   const [open, setOpen] = useState(true);
+  const { data: presence } = useWorkspacePresence(workspaceId);
 
   const workspaceMembers = memberData?.members;
   const currentUserMember = memberData?.currentUserMember;
+  const onlineUserIds = new Set(presence.userIds);
 
   if (isPending) return <MembersListLoading />;
   if (isError) return <MembersListError />;
@@ -72,6 +75,8 @@ export const MembersListView = () => {
                             name={m.user.name}
                             image={m.user.image}
                             className="size-12 shrink-0"
+                            isLive={onlineUserIds.has(m.userId)}
+                            liveIndicatorClassName="bg-emerald-500 ring-sidebar"
                           />
                           <div className="flex flex-col flex-1 min-w-0">
                             <span className="text-lg font-semibold truncate">

@@ -105,6 +105,24 @@ const rejectUpgrade = (
   socket.destroy();
 };
 
+const getWorkspacePresenceUserIds = (workspaceId: string) => {
+  const room = getWsState().workspaceRooms.get(workspaceId);
+  if (!room) return [];
+
+  return [...new Set(Array.from(room, (client) => client.userId))];
+};
+
+const broadcastWorkspacePresence = (workspaceId: string) => {
+  const room = getWsState().workspaceRooms.get(workspaceId);
+  if (!room?.size) return;
+
+  broadcastToWorkspace(workspaceId, {
+    type: SOCKET_EVENT.WORKSPACE_PRESENCE_SYNC,
+    workspaceId,
+    userIds: getWorkspacePresenceUserIds(workspaceId),
+  });
+};
+
 export const broadcastToChannel = (
   channelId: string,
   event: ServerSocketEvent,
@@ -265,13 +283,17 @@ export const initWebSocketServer = (server: SocketServer) => {
 
     room.add(ws);
     state.workspaceRooms.set(ws.workspaceId, room);
+    broadcastWorkspacePresence(ws.workspaceId);
 
     ws.on("close", () => {
       room.delete(ws);
 
       if (room.size === 0) {
         state.workspaceRooms.delete(ws.workspaceId);
+        return;
       }
+
+      broadcastWorkspacePresence(ws.workspaceId);
     });
   });
 

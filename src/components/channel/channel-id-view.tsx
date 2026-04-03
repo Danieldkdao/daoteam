@@ -82,7 +82,12 @@ const ChannelIdSuspense = ({ workspaceId, channelId }: ChannelIdViewProps) => {
     workspaceId,
   });
   useChannelSocket(channelId, workspaceId, (event) => {
-    if (event.type === SOCKET_EVENT.MEMBER_ADDED) return;
+    if (
+      event.type === SOCKET_EVENT.MEMBER_ADDED ||
+      event.type === SOCKET_EVENT.WORKSPACE_PRESENCE_SYNC
+    ) {
+      return;
+    }
 
     if (event.channelId !== channelId) return;
 
