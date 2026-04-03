@@ -1,8 +1,5 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 
 type UnauthorizedStateProps = {
   title?: string;
@@ -13,15 +10,6 @@ export const UnauthorizedState = ({
   title = "You do not have access to this page",
   description = "This area is only available to workspace admins and owners.",
 }: UnauthorizedStateProps) => {
-  const [backHref, setBackHref] = useState("/workspace");
-
-  useEffect(() => {
-    const currentUrl = new URL(window.location.href);
-    const workspacePath = currentUrl.pathname.match(/^\/workspace\/[^/]+/);
-
-    setBackHref(workspacePath?.[0] ?? "/workspace");
-  }, []);
-
   return (
     <div className="w-full rounded-lg border bg-card p-8 shadow-sm">
       <div className="space-y-3">
@@ -34,9 +22,9 @@ export const UnauthorizedState = ({
             {description}
           </p>
         </div>
-        <Button asChild className="mt-2">
-          <Link href={backHref}>Back to Workspace</Link>
-        </Button>
+        <Link href="/workspace">
+          <Button className="mt-2">Back to Workspace</Button>
+        </Link>
       </div>
     </div>
   );

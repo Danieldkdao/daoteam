@@ -83,6 +83,7 @@ export const auth = betterAuth({
           },
         },
       },
+
       requireEmailVerificationOnInvitation: true,
       organizationHooks: {
         afterAcceptInvitation: async (data) => {
@@ -138,7 +139,8 @@ export const auth = betterAuth({
             },
           },
         ],
-        authorizeReference: async ({ user, referenceId }) => {
+        authorizeReference: async ({ user, referenceId, action }) => {
+          if (action === "list-subscription") return true;
           const [teamMember] = await db
             .select()
             .from(member)

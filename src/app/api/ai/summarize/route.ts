@@ -47,8 +47,10 @@ const formatThreadMessage = ({
 };
 
 export const POST = async (req: Request) => {
+  console.log("yes");
   const session = await auth.api.getSession({ headers: req.headers });
   if (!session) return NextResponse.json(UNAUTHED_MESSAGE, { status: 401 });
+  console.log("after");
 
   const { threadId, workspaceId }: { threadId?: string; workspaceId?: string } =
     await req.json();
@@ -67,6 +69,8 @@ export const POST = async (req: Request) => {
       { status: 429 },
     );
   }
+
+  console.log(allowed);
 
   const thread = await db.query.MessageTable.findFirst({
     where: eq(MessageTable.id, threadId),

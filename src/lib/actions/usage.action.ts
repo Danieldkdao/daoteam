@@ -45,17 +45,7 @@ export const getUsageAction = async (workspaceId: string) => {
 
   if (!isResetReady(result.org.lastResetOn)) return defaultReturnValue;
 
-  const update = await auth.api.updateOrganization({
-    body: {
-      data: {
-        aiMessages: 0,
-        aiThreadSummaries: 0,
-        lastResetOn: new Date(),
-      },
-      organizationId: workspaceId,
-    },
-    headers: h,
-  });
+  const [update] = await updateWorkspaceUsage(workspaceId);
 
   if (!update) return defaultReturnValue;
   return {
@@ -87,17 +77,7 @@ export const canPermissionAction = async ({
   });
   if (result.message !== null) return false;
   if (isResetReady(result.org.lastResetOn)) {
-    await auth.api.updateOrganization({
-      body: {
-        data: {
-          aiMessages: 0,
-          aiThreadSummaries: 0,
-          lastResetOn: new Date(),
-        },
-        organizationId: workspaceId,
-      },
-      headers: h,
-    });
+    await updateWorkspaceUsage(workspaceId);
     return true;
   }
 
@@ -125,4 +105,16 @@ export const incrementUsage = async ({
       [feature]: sql`${organization[feature]} + 1`,
     })
     .where(eq(organization.id, workspaceId));
+};
+
+const updateWorkspaceUsage = async (workspaceId: string) => {
+  return db
+    .update(organization)
+    .set({
+      aiMessages: 0,
+      aiThreadSummaries: 0,
+      lastResetOn: new Date(),
+    })
+    .where(eq(organization.id, workspaceId))
+    .returning();
 };
