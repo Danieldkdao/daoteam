@@ -1,5 +1,9 @@
 import { db } from "@/db/db";
 import { MessageTable } from "@/db/schema";
+import {
+  canPermissionAction,
+  incrementUsage,
+} from "@/lib/actions/usage.action";
 import { cohere } from "@/lib/ai";
 import { auth } from "@/lib/auth/auth";
 import { UNAUTHED_MESSAGE } from "@/lib/constants";
@@ -44,12 +48,24 @@ const formatThreadMessage = ({
 
 export const POST = async (req: Request) => {
   const session = await auth.api.getSession({ headers: req.headers });
-  if (!session)
-    return NextResponse.json({ error: UNAUTHED_MESSAGE }, { status: 401 });
+  if (!session) return NextResponse.json(UNAUTHED_MESSAGE, { status: 401 });
 
-  const { threadId }: { threadId?: string } = await req.json();
-  if (!threadId) {
-    return NextResponse.json({ error: "No thread ID found." });
+  const { threadId, workspaceId }: { threadId?: string; workspaceId?: string } =
+    await req.json();
+  if (!threadId || !workspaceId) {
+    return NextResponse.json("Bad Request", { status: 400 });
+  }
+
+  const allowed = await canPermissionAction({
+    workspaceId,
+    feature: "aiThreadSummaries",
+  });
+  if (!allowed) {
+    return NextResponse.json(
+      "You have reached the limits of your plan. Please upgrade to continue.",
+
+      { status: 429 },
+    );
   }
 
   const thread = await db.query.MessageTable.findFirst({
@@ -66,10 +82,8 @@ export const POST = async (req: Request) => {
   });
 
   if (!thread) {
-    return NextResponse.json({ error: "Thread not found." });
+    return NextResponse.json("Thread not found.", { status: 404 });
   }
-
-  // todo: add rate limits based on the users plan
 
   const threadMessagesForPrompt = [
     formatThreadMessage({
@@ -96,6 +110,9 @@ export const POST = async (req: Request) => {
     model: cohere("command-r-08-2024"),
     system: AI_THREAD_SUMMARY_SYSTEM_PROMPT,
     prompt: getAIThreadSummaryPrompt(threadMessagesForPrompt),
+    onFinish: async () => {
+      await incrementUsage({ workspaceId, feature: "aiThreadSummaries" });
+    },
   });
 
   return result.toUIMessageStreamResponse();

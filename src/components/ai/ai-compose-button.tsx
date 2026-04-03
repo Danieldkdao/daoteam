@@ -1,6 +1,12 @@
 "use client";
 
+import { useChat } from "@ai-sdk/react";
+import { Editor } from "@tiptap/react";
+import { DefaultChatTransport } from "ai";
 import { SparklesIcon, TriangleAlertIcon } from "lucide-react";
+import { useParams } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "../ui/button";
 import {
   Popover,
@@ -9,11 +15,6 @@ import {
   PopoverTrigger,
 } from "../ui/popover";
 import { Separator } from "../ui/separator";
-import { useState } from "react";
-import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
-import { Editor } from "@tiptap/react";
-import { toast } from "sonner";
 import { Skeleton } from "../ui/skeleton";
 
 const AIComposeLoading = () => {
@@ -27,7 +28,7 @@ const AIComposeLoading = () => {
   );
 };
 
-const AIComposeError = ({ onRetry }: { onRetry: () => void }) => {
+const AIComposeError = ({ error }: { error?: string }) => {
   return (
     <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm">
       <div className="flex items-start gap-3">
@@ -37,33 +38,29 @@ const AIComposeError = ({ onRetry }: { onRetry: () => void }) => {
 
         <div className="min-w-0 flex-1 space-y-1">
           <p className="font-medium text-foreground">
-            Couldn&apos;t rewrite this message
+            Couldn&apos;t generate this message
           </p>
           <p className="text-muted-foreground">
-            The compose request failed before we got a response. Try again and
-            we&apos;ll generate a fresh rewrite.
+            {error ??
+              `The compose request failed before we got a response. Try again and
+            we'll generate a fresh rewrite.`}
           </p>
         </div>
-      </div>
-
-      <div className="mt-4 flex justify-end">
-        <Button variant="outline" onClick={onRetry}>
-          Try Again
-        </Button>
       </div>
     </div>
   );
 };
 
 export const AIComposeButton = ({ editor }: { editor: Editor }) => {
+  const { workspaceId } = useParams() as { workspaceId: string };
   const [open, setOpen] = useState(false);
-  const { messages, sendMessage, status } = useChat({
+  const { messages, sendMessage, status, error } = useChat({
     transport: new DefaultChatTransport({
       api: "/api/ai/compose",
       credentials: "include",
-      // body: {
-      //   workspaceId:
-      // }
+      body: {
+        workspaceId,
+      },
     }),
   });
 
@@ -114,7 +111,7 @@ export const AIComposeButton = ({ editor }: { editor: Editor }) => {
         <Button
           className="rounded-full bg-linear-90 from-purple-700 to-fuchsia-600 text-white border-none px-4"
           onClick={handleGenerate}
-          disabled={open}
+          disabled={open || !editor.getText().length}
         >
           <SparklesIcon className="text-white" />
           Compose
@@ -137,7 +134,7 @@ export const AIComposeButton = ({ editor }: { editor: Editor }) => {
           {isLoading ? (
             <AIComposeLoading />
           ) : isError ? (
-            <AIComposeError onRetry={() => void handleGenerate()} />
+            <AIComposeError error={error?.message?.replaceAll(`"`, "")} />
           ) : (
             <span className="whitespace-pre-wrap text-base">
               {latestResponse}

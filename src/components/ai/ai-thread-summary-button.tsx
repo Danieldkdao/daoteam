@@ -14,6 +14,7 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { MarkdownRenderer } from "../markdown-renderer";
 import { Skeleton } from "../ui/skeleton";
+import { useParams } from "next/navigation";
 
 const AIComposeLoading = () => {
   return (
@@ -26,7 +27,7 @@ const AIComposeLoading = () => {
   );
 };
 
-const AIThreadSummaryError = ({ onRetry }: { onRetry: () => void }) => {
+const AIThreadSummaryError = ({ error }: { error?: string }) => {
   return (
     <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm">
       <div className="flex items-start gap-3">
@@ -39,29 +40,26 @@ const AIThreadSummaryError = ({ onRetry }: { onRetry: () => void }) => {
             Couldn&apos;t summarize this thread
           </p>
           <p className="text-muted-foreground">
-            The summary request failed before we got a response. Try again and
-            we&apos;ll generate a fresh summary.
+            {error ??
+              `The summary request failed before we got a response. Try again and
+            we'll generate a fresh summary.`}
           </p>
         </div>
-      </div>
-
-      <div className="mt-4 flex justify-end">
-        <Button variant="outline" onClick={onRetry}>
-          Try Again
-        </Button>
       </div>
     </div>
   );
 };
 
 export const AIThreadSummaryButton = ({ threadId }: { threadId: string }) => {
+  const { workspaceId } = useParams() as { workspaceId: string };
   const [open, setOpen] = useState(false);
-  const { messages, sendMessage, status } = useChat({
+  const { messages, sendMessage, status, error } = useChat({
     transport: new DefaultChatTransport({
       api: "/api/ai/summarize",
       credentials: "include",
       body: {
         threadId,
+        workspaceId,
       },
     }),
   });
@@ -118,7 +116,7 @@ export const AIThreadSummaryButton = ({ threadId }: { threadId: string }) => {
           {isLoading ? (
             <AIComposeLoading />
           ) : isError ? (
-            <AIThreadSummaryError onRetry={() => void handleGenerate()} />
+            <AIThreadSummaryError error={error?.message?.replaceAll(`"`, "")} />
           ) : (
             <div className="max-h-80 overflow-auto text-base">
               <MarkdownRenderer>{latestResponse ?? ""}</MarkdownRenderer>

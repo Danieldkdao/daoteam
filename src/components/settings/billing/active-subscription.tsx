@@ -6,14 +6,17 @@ import { PricingPlan } from "@/db/schema";
 import { useSubscription } from "@/hooks/use-subscription";
 import { authClient } from "@/lib/auth/auth-client";
 import { PLAN_DETAILS } from "@/lib/constants";
+import { ActiveSubscriptionSkeleton } from "./billing-skeletons";
 
 export const ActiveSubscription = ({
   workspaceId,
 }: {
   workspaceId: string;
 }) => {
-  const { activeSubscription } = useSubscription(workspaceId);
+  const { activeSubscription, isPending } = useSubscription(workspaceId);
   const plan = (activeSubscription?.plan ?? "free") as PricingPlan;
+
+  if (isPending) return <ActiveSubscriptionSkeleton />;
 
   const planPrice = PLAN_DETAILS.find((p) => p.plan === plan)?.price ?? 0;
 

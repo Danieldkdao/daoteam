@@ -59,6 +59,30 @@ export const auth = betterAuth({
       },
     }),
     organization({
+      schema: {
+        organization: {
+          additionalFields: {
+            aiThreadSummaries: {
+              type: "number",
+              input: true,
+              required: true,
+              defaultValue: 0,
+            },
+            aiMessages: {
+              type: "number",
+              input: true,
+              required: true,
+              defaultValue: 0,
+            },
+            lastResetOn: {
+              type: "date",
+              input: true,
+              required: true,
+              defaultValue: () => new Date(),
+            },
+          },
+        },
+      },
       requireEmailVerificationOnInvitation: true,
       organizationHooks: {
         afterAcceptInvitation: async (data) => {
@@ -93,24 +117,24 @@ export const auth = betterAuth({
           {
             name: "Free",
             limits: {
-              monthlyAIGeneratedMessage: 50,
-              monthlyAIGeneratedSummaries: 1,
+              aiMessages: 50,
+              aiThreadSummaries: 1,
             },
           },
           {
             name: "pro",
             priceId: envServer.STRIPE_PRO_PRICE_ID,
             limits: {
-              monthlyAIGeneratedMessage: 500,
-              monthlyAIGeneratedSummaries: 5,
+              aiMessages: 500,
+              aiThreadSummaries: 5,
             },
           },
           {
             name: "enterprise",
             priceId: envServer.STRIPE_ENTERPRISE_PRICE_ID,
             limits: {
-              monthlyAIGeneratedMessage: null,
-              monthlyAIGeneratedSummaries: null,
+              aiMessages: null,
+              aiThreadSummaries: null,
             },
           },
         ],

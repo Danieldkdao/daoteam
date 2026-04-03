@@ -58,3 +58,5 @@ export const PLAN_DETAILS: {
     isMostPopular: false,
   },
 ] as const;
+
+export const PAID_FEATURES = ["aiMessages", "aiThreadSummaries"] as const;
