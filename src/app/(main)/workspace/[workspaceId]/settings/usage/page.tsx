@@ -88,7 +88,7 @@ const UsagePageSuspense = async ({ params }: UsageParamProps) => {
   return (
     <div className="space-y-8">
       <div className="p-5 rounded-lg bg-card shadow-sm border space-y-4">
-        <div className="flex items-center gap-2 justify-between">
+        <div className="flex items-center gap-4 justify-between flex-wrap">
           <span className="text-2xl font-bold">AI Generated Messages</span>
           <div className="flex items-end gap-1">
             <span className="text-2xl font-bold text-foreground">

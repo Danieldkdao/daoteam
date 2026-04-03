@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { AlertCircleIcon, MessageSquareIcon, XIcon } from "lucide-react";
 import { AIThreadSummaryButton } from "../ai/ai-thread-summary-button";
 import { Button } from "../ui/button";
+import { Drawer, DrawerContent, DrawerTitle } from "../ui/drawer";
 import { Skeleton } from "../ui/skeleton";
 import { Message } from "./message";
 import { MessageSkeleton } from "./message-skeleton";
@@ -160,27 +161,54 @@ const ThreadSidebarShell = ({
   onClose: () => void;
 }) => {
   const { currentThreadMessage } = useThreadMessage();
-  return (
-    <div className="border-l w-130 shrink-0 flex flex-col min-h-0 overflow-x-hidden">
-      <div className="px-5 h-16 border-b flex items-center justify-between min-w-0">
-        <div className="flex items-center gap-2">
-          <MessageSquareIcon className="size-5" />
-          <span className="text-xl font-medium">Thread</span>
-        </div>
-        <div className="flex items-center gap-2">
-          {currentThreadMessage && (
-            <AIThreadSummaryButton threadId={currentThreadMessage} />
-          )}
-          <Button
-            variant="outline"
-            className="size-11 sm:size-11 [&_svg:not([class*='size-'])]:size-5"
-            onClick={onClose}
-          >
-            <XIcon />
-          </Button>
-        </div>
+
+  const header = (
+    <div className="flex h-16 min-w-0 items-center justify-between border-b px-4 md:px-5">
+      <div className="flex min-w-0 items-center gap-2">
+        <MessageSquareIcon className="size-5" />
+        <span className="truncate text-lg font-medium md:text-xl">Thread</span>
       </div>
-      {children}
+      <div className="flex items-center gap-2">
+        {currentThreadMessage ? (
+          <AIThreadSummaryButton threadId={currentThreadMessage} />
+        ) : null}
+        <Button
+          variant="outline"
+          className="size-10 [&_svg:not([class*='size-'])]:size-5 md:size-11"
+          onClick={onClose}
+        >
+          <XIcon />
+        </Button>
+      </div>
     </div>
+  );
+
+  return (
+    <>
+      <Drawer
+        direction="right"
+        open={!!currentThreadMessage}
+        onOpenChange={(open) => {
+          if (!open) onClose();
+        }}
+        modal={false}
+      >
+        <DrawerContent
+          overlayClassName="xl:hidden"
+          className="bg-background p-0 xl:hidden data-[vaul-drawer-direction=right]:w-[min(34rem,calc(100vw-0.75rem))] data-[vaul-drawer-direction=right]:sm:max-w-none"
+        >
+          <DrawerTitle className="sr-only">Thread</DrawerTitle>
+          <div className="flex h-full min-h-0 flex-col overflow-hidden">
+            {header}
+            {children}
+          </div>
+        </DrawerContent>
+      </Drawer>
+
+      <div className="hidden h-full w-full max-w-[26rem] shrink-0 flex-col overflow-hidden border-l xl:flex 2xl:max-w-[32.5rem]">
+        {header}
+        {children}
+      </div>
+    </>
   );
 };

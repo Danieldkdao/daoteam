@@ -31,10 +31,10 @@ export const ChannelListHeaderView = () => {
 
 const ChannelListHeaderLoading = () => {
   return (
-    <div className="px-5 py-6 border-b">
-      <div className="space-y-2">
+    <div className="flex h-16 items-center border-b px-5">
+      <div className="w-full space-y-2 overflow-hidden">
         <Skeleton className="h-4 w-24 rounded-full" />
-        <Skeleton className="h-9 w-40 rounded-xl" />
+        <Skeleton className="h-7 w-40 max-w-full rounded-xl" />
       </div>
     </div>
   );

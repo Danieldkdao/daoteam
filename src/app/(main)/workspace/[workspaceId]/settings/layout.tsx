@@ -22,9 +22,9 @@ const SettingsLayout = async ({
     );
 
   return (
-    <div className="pt-10 px-10 w-full h-full flex gap-8">
+    <div className="flex h-full w-full flex-col gap-6 px-4 pt-6 md:px-8 md:pt-8 lg:px-10 lg:pt-10">
       <SettingsLinks workspaceId={workspaceId} />
-      <div className="flex-1 w-full h-full overflow-auto">{children}</div>
+      <div className="min-h-0 flex-1 w-full overflow-auto">{children}</div>
     </div>
   );
 };

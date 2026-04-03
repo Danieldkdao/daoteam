@@ -129,8 +129,8 @@ export const MembersListView = () => {
 
 const MembersListLoading = () => {
   return (
-    <div className="border-t flex h-90 flex-col overflow-hidden p-5">
-      <div className="flex items-center justify-between">
+    <div className="border-t flex flex-1 flex-col overflow-hidden p-5">
+      <div className="flex items-center justify-between gap-3">
         <Skeleton className="h-5 w-18 rounded-full" />
         <Skeleton className="size-4 rounded-full" />
       </div>
@@ -151,7 +151,7 @@ const MembersListLoading = () => {
 
 const MembersListError = () => {
   return (
-    <div className="border-t flex h-70 flex-col p-5">
+    <div className="border-t flex flex-1 flex-col p-5">
       <div className="rounded-lg border border-dashed border-destructive/35 bg-destructive/8 p-4">
         <h2 className="text-sm font-semibold text-destructive">
           Unable to load members

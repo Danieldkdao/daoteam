@@ -11,7 +11,7 @@ export const MessageSkeleton = ({
 
   return (
     <div
-      className={`flex items-start gap-4 rounded-lg p-4 ${
+      className={`flex w-full items-start gap-4 rounded-lg p-4 ${
         isEnd ? "bg-card/50" : ""
       }`}
     >
@@ -21,7 +21,7 @@ export const MessageSkeleton = ({
           <Skeleton className="h-5 w-28 rounded-md" />
           <Skeleton className="h-4 w-36 rounded-md" />
         </div>
-        <div className="space-y-2">
+        <div className="w-full space-y-2">
           {Array.from({ length: lines }).map((_, index) => (
             <Skeleton
               key={index}

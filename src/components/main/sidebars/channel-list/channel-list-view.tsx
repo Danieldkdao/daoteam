@@ -24,11 +24,11 @@ export const ChannelListView = () => {
 export const ChannelListLoading = () => {
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-5">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <Skeleton className="h-5 w-16 rounded-full" />
         <Skeleton className="size-4 rounded-full" />
       </div>
-      <div className="mt-4 space-y-1 overflow-hidden">
+      <div className="mt-4 space-y-1.5 overflow-hidden">
         {Array.from({ length: 7 }).map((_, index) => (
           <div key={index} className="rounded-md px-2 py-1.5">
             <div className="flex items-center gap-2.5">
@@ -49,7 +49,7 @@ export const ChannelListLoading = () => {
 
 export const ChannelListError = () => {
   return (
-    <div className="p-5 flex-1">
+    <div className="flex flex-1 p-5">
       <div className="rounded-lg border border-dashed border-destructive/35 bg-destructive/8 p-4">
         <h2 className="text-sm font-semibold text-destructive">
           Unable to load channels

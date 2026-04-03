@@ -18,8 +18,15 @@ import { Input } from "../ui/input";
 import { Separator } from "../ui/separator";
 import { MemberItem } from "./member-item";
 import { Skeleton } from "../ui/skeleton";
+import { cn } from "@/lib/utils";
 
-export const ShowMembersButton = ({ workspaceId }: { workspaceId: string }) => {
+export const ShowMembersButton = ({
+  workspaceId,
+  compact = false,
+}: {
+  workspaceId: string;
+  compact?: boolean;
+}) => {
   const trpc = useTRPC();
   const [search, setSearch] = useState("");
   const debouncedSearchValue = useDebouncedValue(search, { wait: 1250 });
@@ -35,9 +42,13 @@ export const ShowMembersButton = ({ workspaceId }: { workspaceId: string }) => {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline">
+        <Button
+          variant="outline"
+          aria-label="Show members"
+          className={cn(compact && "size-9 px-0")}
+        >
           <UsersIcon />
-          Members
+          {!compact ? "Members" : null}
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="space-y-2 min-w-80">

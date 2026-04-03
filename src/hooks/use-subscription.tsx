@@ -6,6 +6,7 @@ import { toast } from "sonner";
 export const useSubscription = (workspaceId: string | null) => {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [isPending, setIsPending] = useState(true);
+  const [isError, setIsError] = useState(false);
 
   useEffect(() => {
     let isCancelled = false;
@@ -13,11 +14,13 @@ export const useSubscription = (workspaceId: string | null) => {
     const loadSubscriptions = async () => {
       if (!workspaceId) {
         setSubscriptions([]);
+        setIsError(false);
         setIsPending(false);
         return;
       }
 
       setIsPending(true);
+      setIsError(false);
 
       const result = await authClient.subscription.list({
         query: {
@@ -30,6 +33,7 @@ export const useSubscription = (workspaceId: string | null) => {
 
       if (result.error) {
         setSubscriptions([]);
+        setIsError(true);
         toast.error("Failed to load subscriptions.");
         return;
       }
@@ -53,5 +57,5 @@ export const useSubscription = (workspaceId: string | null) => {
       subscription.status === "active" || subscription.status === "trialing",
   );
 
-  return { subscriptions, activeSubscription, isPending };
+  return { subscriptions, activeSubscription, isPending, isError };
 };

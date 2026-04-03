@@ -2,6 +2,7 @@
 
 import { UserPlusIcon } from "lucide-react";
 import { Button } from "../ui/button";
+import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { InviteMemberModal } from "./invite-member-modal";
 
@@ -9,10 +10,12 @@ export const InviteMemberButton = ({
   variant = "outline",
   className,
   workspaceId,
+  compact = false,
 }: {
   variant?: "default" | "outline";
   className?: string;
   workspaceId: string;
+  compact?: boolean;
 }) => {
   const [open, setOpen] = useState(false);
 
@@ -26,10 +29,11 @@ export const InviteMemberButton = ({
       <Button
         variant={variant}
         onClick={() => setOpen(true)}
-        className={className}
+        aria-label="Invite member"
+        className={cn(compact && "size-9 px-0", className)}
       >
         <UserPlusIcon />
-        Invite Member
+        {!compact ? "Invite Member" : null}
       </Button>
     </>
   );
