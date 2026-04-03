@@ -14,6 +14,7 @@ export const proxy = async (request: NextRequest) => {
   const existingUser = await db.query.user.findFirst({
     where: eq(user.id, session?.user.id ?? ""),
   });
+  if (pathname === "/") return NextResponse.next();
   if (
     !authedRoutes.includes(pathname) &&
     !pathname.includes("/accept-invitation") &&
