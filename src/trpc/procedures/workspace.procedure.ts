@@ -38,6 +38,9 @@ export const workspaceRouter = createTRPCRouter({
             slug: generateSlug(input.name, ctx.auth.user.id),
             userId: ctx.auth.user.id,
             keepCurrentActiveOrganization: false,
+            aiMessages: 0,
+            aiThreadSummaries: 0,
+            lastResetOn: new Date(),
           },
           headers: requestHeaders,
         });

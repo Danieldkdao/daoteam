@@ -1,15 +1,12 @@
+export const dynamic = "force-dynamic";
+
 import { NoWorkspacesYet } from "@/components/workspace/no-workspaces-yet";
 import { auth } from "@/lib/auth/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { Suspense } from "react";
 
 const WorkspacePage = () => {
-  return (
-    <Suspense>
-      <WorkspaceSuspense />
-    </Suspense>
-  );
+  return <WorkspaceSuspense />;
 };
 
 export default WorkspacePage;
