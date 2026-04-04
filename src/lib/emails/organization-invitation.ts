@@ -1,5 +1,5 @@
 import { envServer } from "@/data/env/server";
-import { transporter } from "./transporter";
+import { sendEmail } from "./mailjet";
 
 type SendOrganizationInvitationProps = {
   email: string;
@@ -119,7 +119,7 @@ export const sendOrganizationInvitation = async ({
     </html>
   `;
 
-  await transporter.sendMail({
+  await sendEmail({
     from: envServer.SENDER_EMAIL,
     to: email,
     subject,

@@ -1,5 +1,5 @@
 import { envServer } from "@/data/env/server";
-import { transporter } from "./transporter";
+import { sendEmail } from "./mailjet";
 
 type sendVerificationOtpProps = {
   email: string;
@@ -139,12 +139,11 @@ export const sendVerificationOtp = async ({
     </html>
   `;
 
-  const mailOptions = {
+  await sendEmail({
     from: envServer.SENDER_EMAIL,
     to: email,
     subject: content.subject,
     html,
     text,
-  };
-  await transporter.sendMail(mailOptions);
+  });
 };
