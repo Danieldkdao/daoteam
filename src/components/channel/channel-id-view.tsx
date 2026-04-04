@@ -177,8 +177,8 @@ const ChannelIdSuspense = ({ workspaceId, channelId }: ChannelIdViewProps) => {
   const messages = data.messages;
 
   return (
-    <div className="flex h-full min-w-0 overflow-hidden">
-      <div className="flex h-full min-w-0 flex-1 flex-col">
+    <div className="flex h-full min-w-0 overflow-hidden w-full">
+      <div className="flex h-full min-w-0 w-full flex-1 flex-col">
         <MessageHeader channelSlug={channel.slug} workspaceId={workspaceId} />
         <MessagesList messages={messages} />
         <div className="p-4 border-t">
